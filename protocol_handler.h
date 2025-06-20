@@ -102,17 +102,20 @@ void saveLicenseData() {
 }
 
 // Tải dữ liệu license từ NVS (gọi trong setup())
-void loadLicenseData() {
-    preferences.begin("license", true); // Mở namespace "license" ở chế độ read-only
-    globalLicense.lid = preferences.getInt("lid", 0);
-    globalLicense.created = preferences.getULong("created", 0);
-    globalLicense.duration = preferences.getInt("duration", 0);
-    globalLicense.remain = preferences.getInt("remain", 0);
-    globalLicense.expired_flag = preferences.getBool("expired_flag", false);
-    unsigned long last_save = preferences.getULong("last_save", 0);
-    runtime = preferences.getULong("runtime", 0);
-    globalLicense.nod = preferences.getUInt("nod", 10); // Bổ sung: Đọc NOD, mặc định 10
-    preferences.end();
+    void loadLicenseData() {
+        preferences.begin("license", true); // Mở namespace "license" ở chế độ read-only
+        globalLicense.lid = preferences.getInt("lid", 0);
+        config_lid = preferences.getInt("config_lid", config_lid);
+        config_id = preferences.getInt("config_id", config_id);
+        globalLicense.created = preferences.getULong("created", 0);
+        globalLicense.duration = preferences.getInt("duration", 0);
+        globalLicense.remain = preferences.getInt("remain", 0);
+        globalLicense.expired_flag = preferences.getBool("expired_flag", false);
+        unsigned long last_save = preferences.getULong("last_save", 0);
+        runtime = preferences.getULong("runtime", 0);
+        globalLicense.nod = preferences.getUInt("nod", 10); // Bổ sung: Đọc NOD, mặc định 10
+        nod = globalLicense.nod;
+        preferences.end();
 
         Serial.println("✅ Đã đọc và cập nhật dữ liệu license từ NVS:");
         Serial.print("LID: "); Serial.println(globalLicense.lid);
