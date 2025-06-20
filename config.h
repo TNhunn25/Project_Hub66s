@@ -86,5 +86,6 @@ extern time_t now;
 extern unsigned long lastSendTime;
 extern String device_id;
 extern bool networkConnected;
+extern uint32_t nod;
 
 #endif // CONFIG_H
