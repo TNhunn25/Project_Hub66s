@@ -29,7 +29,9 @@ static uint8_t receiverMac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // MAC broa
 #define private_key "khoabi_mat_123"
 
 // Hàm mã hóa Auth MD5
-String md5Hash(int id_src, int id_des, String mac_src, String mac_des, uint8_t opcode, String data, unsigned long timestamp) {
+String md5Hash(int id_src, int id_des, const String &mac_src, const String &mac_des, uint8_t opcode, const String &data,
+    unsigned long timestamp) {
+
     MD5Builder md5;
     md5.begin();
     md5.add(String(id_src));
@@ -41,7 +43,7 @@ String md5Hash(int id_src, int id_des, String mac_src, String mac_des, uint8_t o
     md5.add(String(timestamp));
     md5.add(private_key);
     md5.calculate();
-    return md5.toString(); // Trả về chuỗi MD5 hex
+    return md5.toString();  // Trả về chuỗi MD5 hex
 }
 
 // Cấu trúc dữ liệu
@@ -65,8 +67,8 @@ typedef struct {
 
 // Lấy địa chỉ MAC của thiết bị
 String getDeviceMacAddress() {
-    return WiFi.macAddress();
-}
+     return WiFi.macAddress(); 
+    }
 
 // Biến toàn cục
 extern LedStatus led;
@@ -86,6 +88,6 @@ extern time_t now;
 extern unsigned long lastSendTime;
 extern String device_id;
 extern bool networkConnected;
-extern uint32_t nod;
+extern uint32_t nod; // Số lượng thiết bị, mặc định là 10
 
 #endif // CONFIG_H
