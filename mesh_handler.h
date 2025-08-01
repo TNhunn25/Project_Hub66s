@@ -7,10 +7,10 @@
 #include "protocol_handler.h" // prototype của sendResponse(...)
 
 // Thông số mạng mesh
-#define MESH_SSID      "Hub66sMesh"
-#define MESH_PASSWORD  "mesh_pass_456"
-#define MESH_PORT      5555
-#define MESH_CHANNEL   2
+#define MESH_SSID "Hub66sMesh"
+#define MESH_PASSWORD "mesh_pass_456"
+#define MESH_PORT 5555
+#define MESH_CHANNEL 2
 
 extern painlessMesh mesh;
 
@@ -18,20 +18,24 @@ extern painlessMesh mesh;
  * Callback khi nhận message từ mesh
  * Chỉ xử lý message JSON hợp lệ và xác thực đúng.
  */
-inline void meshReceivedCallback(uint32_t from, String &msg) {
+inline void meshReceivedCallback(uint32_t from, String &msg)
+{
     msg.trim();
-    if (msg.isEmpty()) return;
+    if (msg.isEmpty())
+        return;
 
     // Chỉ xử lý message JSON
-    if (!msg.startsWith("{")) {
+    if (!msg.startsWith("{"))
+    {
         Serial.printf("[mesh] Non-JSON message: %s\n", msg.c_str());
         return;
     }
 
     // Parse JSON
-    StaticJsonDocument<384> doc;  //từ 512 hạ xuống 384
+    StaticJsonDocument<384> doc; // từ 512 hạ xuống 384
     auto err = deserializeJson(doc, msg);
-    if (err) {
+    if (err)
+    {
         Serial.printf("[mesh] JSON parse error: %s\n", err.c_str());
         return;
     }
@@ -63,15 +67,25 @@ inline void meshReceivedCallback(uint32_t from, String &msg) {
     String calculatedAuth = md5Hash(id_src, id_des, mac_src, mac_des, opcode, dataStr, timestamp);
 
     // Kiểm tra xác thực
-
-    if (!receivedAuth.equalsIgnoreCase(calculatedAuth)) {
+    if (!receivedAuth.equalsIgnoreCase(calculatedAuth))
+    {
         Serial.println("❌ AUTH MISMATCH! Packet rejected.");
         return;
     }
+
+    // Nếu gói tin không dành cho node này thì chuyển tiếp
+    if (id_des != config_id && id_des != 0)
+    {
+        bool ok = mesh.sendSingle(mac_des, msg);
+        Serial.printf("➡️ Forward to %u %s\n", mac_des, ok ? "OK" : "FAIL");
+        return;
+    }
+
     Serial.println("✅ AUTH OK – processing...");
 
     // Xử lý logic sâu hơn: gọi hàm xử lý gói tin mesh chuyên biệt nếu có
-    if (onMeshReceive) onMeshReceive(from, msg);
+    if (onMeshReceive)
+        onMeshReceive(from, msg);
 
     // Nếu muốn gửi phản hồi thì gửi về node gửi
     // Có thể tuỳ chỉnh điều kiện này (hoặc bỏ nếu không cần)
@@ -82,7 +96,8 @@ inline void meshReceivedCallback(uint32_t from, String &msg) {
 /**
  * Khởi tạo mạng mesh
  */
-inline void initMesh() {
+inline void initMesh()
+{
     Serial.println("Khởi tạo Mesh...");
     WiFi.mode(WIFI_AP_STA);
     delay(100);
@@ -99,20 +114,25 @@ inline void initMesh() {
 /**
  * Hàm gọi trong loop() để cập nhật mesh
  */
-inline void meshLoop() {
+inline void meshLoop()
+{
     mesh.update();
 }
 
 /**
  * Gửi broadcast tới toàn mạng
  */
-inline void broadcastMeshMessage(const String &json) {
+inline void broadcastMeshMessage(const String &json)
+{
     Serial.println("📤 Gửi broadcast tới mesh: " + json);
 
-    if (!mesh.sendBroadcast(json)) {
+    if (!mesh.sendBroadcast(json))
+    {
         Serial.println("❌ Gửi broadcast thất bại");
         led.setState(CONNECTION_ERROR);
-    } else {
+    }
+    else
+    {
         Serial.println("✅ Gửi broadcast thành công");
         led.setState(FLASH_TWICE);
     }
