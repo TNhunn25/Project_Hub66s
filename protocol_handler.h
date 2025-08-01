@@ -112,7 +112,10 @@ void processReceivedData(StaticJsonDocument<512> message, uint8_t opcode, const 
         int lid = data["lid"];
         unsigned long time_temp = data["remain"];
 
-        addNodeToList(config_id, lid, nodeId, millis());
+        addNodeToList(config_id, lid, nodeId, time_temp ); //millis()
+
+        // addNodeToList(id_src, lid, nodeId, time_temp);
+        enable_print_ui = true;
         // printDeviceList();
         // Serial.println(data["license"].as<String>());
         break;

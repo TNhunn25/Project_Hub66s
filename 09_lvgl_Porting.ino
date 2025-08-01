@@ -49,7 +49,7 @@ const int duration = 60; // 60 phút
 time_t now = 0;
 
 // Biến expired
-bool expired_flag = false; // Biến logic kiểm soát trạng thái còn hạn
+bool expired_flag = false;          // Biến logic kiểm soát trạng thái còn hạn
 int expired = expired_flag ? 1 : 0; // 1 là hết hạn, 0 là còn hạn
 // lastTargetNode = from;
 uint32_t lastTargetNode = 0;
@@ -237,7 +237,7 @@ void loop()
             break;
         case 4:
 
-            Serial.println("Gửi lệnh LIC_GET_LICENSE");    
+            Serial.println("Gửi lệnh LIC_GET_LICENSE");
 
             getlicense(Device_ID, datalic.lid, mac_nhan, millis());
             // enable_print_ui=true;
@@ -245,7 +245,7 @@ void loop()
             break;
         case 5:
             memset(&Device, 0, sizeof(Device));
-            getlicense(Device_ID, mac_nhan, datalic.lid, millis());
+            getlicense(Device_ID, datalic.lid, mac_nhan, millis());
             // enable_print_ui=true;
             // timer_out=millis();
             break;
@@ -258,15 +258,15 @@ void loop()
 
     if (enable_print_ui_set)
     {
-
-        // if(millis()-timer_out>1000){
+        lvgl_port_lock(-1);
         lv_obj_t *OBJ_Notification = add_Notification(ui_SCRSetLIC, messger);
+        lvgl_port_unlock();
         enable_print_ui_set = false;
-        // }
     }
 
     if (enable_print_ui || (old_page != next_page))
     {
+        lvgl_port_lock(-1);
 
         // if(millis()-timer_out>5000){
         // if (ui_spinner1 != NULL) {
@@ -320,6 +320,7 @@ void loop()
         if (startIdx >= endIdx || startIdx < 0 || endIdx > MAX_DEVICES)
         {
             enable_print_ui = false;
+            lvgl_port_unlock();
             return;
         }
 
@@ -339,13 +340,15 @@ void loop()
         {
             if (i < 0 || i >= MAX_DEVICES)
                 continue;
-            char macStr[18], idStr[18], lidStr[18], timeStr[18];
+            char macStr[18], idStr[18], lidStr[18], timeStr[18], nodStr[8];
             snprintf(macStr, sizeof(macStr), "0x%08X", Device.NodeID[i]);
             snprintf(idStr, sizeof(idStr), "%d", Device.DeviceID[i]);
             snprintf(lidStr, sizeof(lidStr), "%d", Device.LocalID[i]);
             snprintf(timeStr, sizeof(timeStr), "%d", Device.timeLIC[i]);
-            lv_obj_t *ui_DeviceINFO = ui_DeviceINFO1_create(ui_Groupdevice, idStr, lidStr, "****", macStr, timeStr);
+            snprintf(nodStr, sizeof(nodStr), "%d", i + 1);
+            lv_obj_t *ui_DeviceINFO = ui_DeviceINFO1_create(ui_Groupdevice, idStr, lidStr, nodStr, macStr, timeStr);
         }
         enable_print_ui = false;
+        lvgl_port_unlock();
     }
 }
