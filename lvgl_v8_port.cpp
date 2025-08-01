@@ -570,6 +570,11 @@ static lv_disp_t *display_init(LCD *lcd)
     buffer_size = lcd_width * LVGL_PORT_BUFFER_SIZE_HEIGHT;
     for (int i = 0; (i < LVGL_PORT_BUFFER_NUM) && (i < LVGL_PORT_BUFFER_NUM_MAX); i++) {
         lvgl_buf[i] = heap_caps_malloc(buffer_size * sizeof(lv_color_t), LVGL_PORT_BUFFER_MALLOC_CAPS);
+
+        if (!lvgl_buf[i]) {
+            // Nếu SRAM không đủ, thử cấp phát từ PSRAM
+            lvgl_buf[i] = heap_caps_malloc(buffer_size * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
+        }
         assert(lvgl_buf[i]);
         ESP_UTILS_LOGD("Buffer[%d] address: %p, size: %d", i, lvgl_buf[i], buffer_size * sizeof(lv_color_t));
     }

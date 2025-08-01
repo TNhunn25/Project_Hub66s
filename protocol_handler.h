@@ -86,7 +86,7 @@ void processReceivedData(StaticJsonDocument<512> message, uint8_t opcode, const 
         int Status = data["status"];
         const char *error_msg = data["error_msg"].as<const char *>();
 
-        sprintf(messger, "Status: %d \nLocal ID: %s\n", Status, lid);
+        sprintf(messger, "Status: %d \nLocal ID: %d\n", Status, lid);  // đổi %s sang %d
         if (error_msg != NULL)
         {
             strcat(messger, "Lỗi: ");

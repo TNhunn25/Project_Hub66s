@@ -129,29 +129,15 @@ void setup()
 
     Serial.begin(115200);
     Serial.println("[SENDER] Starting...");
-
-    // Khởi tạo Wi-Fi Mesh
-    WiFi.mode(WIFI_AP_STA);
-    // delay(100);                       // Đợi WiFi mode ổn định
-    // WiFi.setTxPower(WIFI_POWER_2dBm); // Giảm công suất phát để tiết kiệm năng lượng
-
-    // Đồng bộ thời gian qua NTP để timestamp đúng
-    configTime(0, 0, "pool.ntp.org");
-
-    initMesh();                     // Khởi tạo mạng Mesh
-    mesh.onReceive(&meshReceiveCb); // Đăng ký callback nhận dữ liệu Mesh
-
-    // LED trạng thái
-    led.setState(CONNECTION_ERROR);
-
+    
     Board *board = new Board();
     board->init();
-
-#if LVGL_PORT_AVOID_TEARING_MODE
+    
+    #if LVGL_PORT_AVOID_TEARING_MODE
     auto lcd = board->getLCD();
     // When avoid tearing function is enabled, the frame buffer number should be set in the board driver
     lcd->configFrameBufferNumber(LVGL_PORT_DISP_BUFFER_NUM);
-#if ESP_PANEL_DRIVERS_BUS_ENABLE_RGB && CONFIG_IDF_TARGET_ESP32S3
+    #if ESP_PANEL_DRIVERS_BUS_ENABLE_RGB && CONFIG_IDF_TARGET_ESP32S3
     auto lcd_bus = lcd->getBus();
     /**
      * As the anti-tearing feature typically consumes more PSRAM bandwidth, for the ESP32-S3, we need to utilize the
@@ -164,10 +150,10 @@ void setup()
     }
 #endif
 #endif
-    assert(board->begin());
+assert(board->begin());
 
-    Serial.println("Initializing LVGL");
-    lvgl_port_init(board->getLCD(), board->getTouch());
+Serial.println("Initializing LVGL");
+lvgl_port_init(board->getLCD(), board->getTouch());
 
     Serial.println("Creating UI");
     /* Lock the mutex due to the LVGL APIs are not thread-safe */
@@ -176,6 +162,20 @@ void setup()
     ui_init();
     /* Release the mutex */
     lvgl_port_unlock();
+
+    // Khởi tạo Wi-Fi Mesh
+    WiFi.mode(WIFI_AP_STA);
+    // delay(100);                       // Đợi WiFi mode ổn định
+    // WiFi.setTxPower(WIFI_POWER_2dBm); // Giảm công suất phát để tiết kiệm năng lượng
+    
+    // Đồng bộ thời gian qua NTP để timestamp đúng
+    configTime(0, 0, "pool.ntp.org");
+    
+    initMesh();                     // Khởi tạo mạng Mesh
+    mesh.onReceive(&meshReceiveCb); // Đăng ký callback nhận dữ liệu Mesh
+    
+    // LED trạng thái
+    led.setState(CONNECTION_ERROR);
 }
 bool ledstt = 1;
 
