@@ -2,6 +2,7 @@
 #define LED_STATUS_H
 
 #include <Arduino.h>
+#include <config.h>
 
 /* ───── Trạng thái LED ────────────────────────────────────────── */
 enum LedState : uint8_t

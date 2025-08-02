@@ -5,6 +5,7 @@
 #include <ArduinoJson.h>
 #include "config.h"
 #include "protocol_handler.h" // prototype của sendResponse(...)
+#include "led_status.h"
 
 // Thông số mạng mesh
 #define MESH_SSID "Hub66sMesh"

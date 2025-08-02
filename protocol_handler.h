@@ -5,9 +5,10 @@
 #include <ArduinoJson.h>
 #include <MD5Builder.h>
 #include "config.h"
+#include "led_status.h"
+// #include "serial.h"
 #include <Preferences.h>
 #include <painlessMesh.h>
-#include "serial.h"
 
 extern painlessMesh mesh; // Mesh object toàn cục
 extern bool dang_gui;

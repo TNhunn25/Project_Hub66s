@@ -1,7 +1,7 @@
 #ifndef SERIAL_H
 #define SERIAL_H
 
-#include "config.h"
+// #include "config.h"
 #include <ArduinoJson.h>
 extern Preferences preferences;
 

@@ -1,8 +1,9 @@
 #ifndef HUB66S_LED_DISPLAY_H
 #define HUB66S_LED_DISPLAY_H
 
-#include <Arduino.h>
 #include "config.h" // để truy cập globalLicense.expired_flag
+#include <Arduino.h>
+// #include "serial.h"
 
 namespace Hub66s {
 

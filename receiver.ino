@@ -3,17 +3,17 @@
 
 #include "config.h"
 #include "led_status.h"
+#include "serial.h"
 #include "mesh_handler.h"
 #include "protocol_handler.h"
-#include "Serial.h"
 #include "watch_dog.h"
-// #include "led_display.h"
+#include "led_display.h"
 
 // Biến toàn cục
 Preferences preferences;
 painlessMesh mesh;
 LedStatus led(LED_PIN, /*activeHigh=*/false); // nếu LED nối kiểu active-LOW
-// Hub66s::LedDisplay ledDisplay; // Khởi tạo đối tượng từ lớp LedDisplay
+Hub66s::LedDisplay ledDisplay; // Khởi tạo đối tượng từ lớp LedDisplay
 
 // Cấu trúc dữ liệu License
 LicenseInfo globalLicense;
@@ -82,7 +82,7 @@ void setup()
   Serial.begin(115200);
   delay(1000);
   Serial.println("\n🌟 HUB66S Receiver Started");
-  // ledDisplay.begin(); // Khởi tạo module LED hiển thị
+  ledDisplay.begin(); // Khởi tạo module LED hiển thị
 
   Hub66s::WatchDog::begin(10); // ⭐ khởi tạo WDT 10 s (toàn chip reset khi quá hạn)
 
@@ -117,7 +117,7 @@ void loop()
   recPC();
   serialPC();
   led.update();
-  // ledDisplay.update(); // Cập nhật hiển thị màn hình LED
+  ledDisplay.update(); // Cập nhật hiển thị màn hình LED
   delay(10); // Giảm tải CPU
 
   // Cập nhật license, remain, expired, NVS mỗi 1 phút
