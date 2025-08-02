@@ -22,7 +22,7 @@ LicenseInfo licenseInfo; // Biến lưu trạng thái license
 device_info Device;
 char jsonBuffer[BUFFER_SIZE];
 int bufferIndex;
-char messger[100];
+char messger[128];
 uint8_t button = 0;
 // Biến lưu cấu hình
 int config_lid = 123;
@@ -235,16 +235,18 @@ void loop()
             set_license(Device_ID, datalic.lid, mac_nhan, millis(), datalic.duration, expired, millis());
             break;
         case 4:
-
+            //gửi Broadcast cho toàn bộ hệ thống
             Serial.println("Gửi lệnh LIC_GET_LICENSE");
 
-            getlicense(Device_ID, datalic.lid, mac_nhan, millis());
+            // getlicense(Device_ID, datalic.lid, mac_nhan, millis());
+            getlicense(0, datalic.lid, 0, millis());
             // enable_print_ui=true;
             // timer_out=millis();
             break;
         case 5:
             memset(&Device, 0, sizeof(Device));
-            getlicense(Device_ID, datalic.lid, mac_nhan, millis());
+            // getlicense(Device_ID, datalic.lid, mac_nhan, millis());
+            getlicense(0, datalic.lid, 0, millis());
             // enable_print_ui=true;
             // timer_out=millis();
             break;
@@ -273,6 +275,18 @@ void loop()
         // lv_obj_del(ui_spinner1); // Xóa đối tượng spinner
         // ui_spinner1 = NULL; // Đặt con trỏ về NULL để tránh tham chiếu sai
         // }
+
+        // lv_obj_clean(ui_Groupdevice);
+        // lv_obj_invalidate(ui_Groupdevice);
+
+        if (timer != NULL) {
+            lv_timer_del(timer);
+            timer = NULL;
+        }
+        if (ui_spinner1 != NULL) {
+            lv_obj_del(ui_spinner1);
+            ui_spinner1 = NULL;
+        }
         lv_obj_clean(ui_Groupdevice);
         lv_obj_invalidate(ui_Groupdevice);
 

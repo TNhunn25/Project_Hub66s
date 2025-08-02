@@ -6,7 +6,7 @@
 #include <ArduinoJson.h>
 
 #include "config.h"
-#include "protocol_handler.h"
+// #include "protocol_handler.h"
 
 // Đối tượng mesh
 extern painlessMesh mesh;
@@ -73,14 +73,33 @@ inline void initMesh()
     Serial.println("✅ Mạng mesh đã sẵn sàng");
 }
 
-inline void sendToNode(uint32_t nodeId, const String &message)
-{
-    mesh.sendSingle(nodeId, message);
-    Serial.printf("📤 Sent to node %u: %s\n", nodeId, message.c_str());
-}
+// inline void sendToNode(uint32_t nodeId, const String &message)
+// {
+//     mesh.sendSingle(nodeId, message);
+//     Serial.printf("📤 Sent to node %u: %s\n", nodeId, message.c_str());
+// }
 
-inline void meshLoop()
-{
-    mesh.update();
-}
+// inline void meshLoop()
+// {
+//     mesh.update();
+// }
+
+
+  inline void sendToNode(uint32_t nodeId, const String &message)
+  {
+      mesh.sendSingle(nodeId, message);
+      Serial.printf("📤 Sent to node %u: %s\n", nodeId, message.c_str());
+  }
+
+  inline void sendToAllNodes(const String &message)
+  {
+      bool ok = mesh.sendBroadcast(message);
+      Serial.printf("📤 Broadcast %s: %s\n", ok ? "OK" : "FAIL", message.c_str());
+  }
+
+  inline void meshLoop()
+  {
+      mesh.update();
+  }
+
 #endif // MESH_HANDLER_H
