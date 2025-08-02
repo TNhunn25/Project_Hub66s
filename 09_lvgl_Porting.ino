@@ -81,8 +81,7 @@ void addNodeToList(int id, int lid, uint32_t nodeId, unsigned long time_)
 
         Device.deviceCount++;
         char macStr[18];
-        // snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
-        //          mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+        snprintf(macStr, sizeof(macStr), "0x%08X", nodeId);
         Serial.print("Thiết bị mới: ");
         Serial.println(macStr);
         // timer_out=millis();
