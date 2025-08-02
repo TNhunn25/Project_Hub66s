@@ -138,4 +138,13 @@ inline void broadcastMeshMessage(const String &json)
     }
 }
 
+/**
+ * Trả về tổng số node đang kết nối trong mesh (bao gồm thiết bị hiện tại)
+ */
+inline uint32_t getConnectedDeviceCount()
+{
+    auto nodes = mesh.getNodeList();
+    return nodes.size() + 1; // +1 tính cả thiết bị hiện tại
+}
+
 #endif // MESH_HANDLER_H

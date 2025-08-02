@@ -77,7 +77,7 @@ void sendResponse(int id_src, int id_des, uint32_t mac_src, uint32_t mac_des, ui
 }
 
 // ===== LƯU/LOAD LICENSE, DEVICE CONFIG =====
-void saveLicenseData()
+void saveLicenseData(bool verbose = true)
 {
     preferences.begin("license", false);
     preferences.putInt("lid", globalLicense.lid);
@@ -89,11 +89,14 @@ void saveLicenseData()
     preferences.putUInt("nod", globalLicense.nod);
     preferences.putULong("last_save", millis() / 1000);
     preferences.end();
-    Serial.println("✅ Đã lưu dữ liệu license vào NVS");
-    Serial.print("Expired: ");
-    Serial.println(globalLicense.expired_flag ? 1 : 0);
-    Serial.print("Remain: ");
-    Serial.println(globalLicense.remain);
+    if (verbose)
+    {
+        Serial.println("✅ Đã lưu dữ liệu license vào NVS");
+        Serial.print("Expired: ");
+        Serial.println(globalLicense.expired_flag ? 1 : 0);
+        Serial.print("Remain: ");
+        Serial.println(globalLicense.remain);
+    }
 }
 
 void saveDeviceConfig()
@@ -116,7 +119,7 @@ void loadLicenseData()
     globalLicense.remain = preferences.getInt("remain", 0);
     globalLicense.expired_flag = preferences.getBool("expired_flag", false);
     runtime = preferences.getULong("runtime", 0);
-    globalLicense.nod = preferences.getUInt("nod", 10);
+    globalLicense.nod = preferences.getUInt("nod", mesh.getNodeList().size() + 1);
     ::nod = globalLicense.nod;
     preferences.end();
     Serial.println("✅ Đã đọc và cập nhật dữ liệu license từ NVS:");
@@ -219,13 +222,13 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
                 globalLicense.remain = duration;
                 globalLicense.expired_flag = false;
                 saveLicenseData();
-                
+
                 respDoc["lid"] = lid;
-                respDoc["id"] = id_src;
+                respDoc["id"] = config_id;
                 // respDoc["nod"] = globalLicense.nod;
                 respDoc["status"] = 0;
                 sendResponse(config_id, id_src, mac_des, mac_src, LIC_SET_LICENSE | 0x80, respDoc, from);
-                Serial.println("✅ Cập nhật giấy phép thành công: LID = " + String(lid) + ", ID = " + String(id_src));
+                Serial.println("✅ Cập nhật giấy phép thành công: LID = " + String(lid) + ", ID = " + String(config_id));
                 led.setState(FLASH_TWICE);
                 while (led.isBusy())
                 {
@@ -268,7 +271,7 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
             respDoc["remain"] = globalLicense.remain;
             respDoc["nod"] = globalLicense.nod;
             respDoc["status"] = 0;
-            Serial.println("✅ License info sent for LID = " + String(lid));
+            Serial.println("✅ License info sent for LID = " + String(config_lid));
             sendResponse(config_id, id_src, mac_src, mac_des, LIC_GET_LICENSE | 0x80, respDoc, from);
             led.setState(FLASH_TWICE);
             while (led.isBusy())

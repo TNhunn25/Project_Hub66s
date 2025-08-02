@@ -57,7 +57,7 @@ typedef struct
     int duration;
     int remain;
     bool expired_flag; // Đã hết hạn chưa
-    uint32_t nod;      // number of device
+    uint32_t nod;      // tổng số thiết bị trong nhóm LID
     String deviceName; // Tên thiết bị
     String version;
 } LicenseInfo;

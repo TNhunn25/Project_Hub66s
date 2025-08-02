@@ -37,7 +37,7 @@ unsigned long lastSendTime = 0;
 uint32_t lastPacketNodeId = 0; // Chỉ ở một chỗ duy nhất!
 
 unsigned long runtime = 0;
-uint32_t nod = 10; // số lượng thiết bị giả định 10
+uint32_t nod = 0; // số lượng thiết bị trong mesh, sẽ được cập nhật ở setup()
 
 bool dang_gui = false; // cờ đang gửi
 
@@ -94,6 +94,7 @@ void setup()
 
   initMesh(); // Initialize mesh network
   mesh.onReceive(&meshReceivedCallback);
+  nod= getConnectedDeviceCount();
   loadLicenseData();
   globalLicense.lid = config_lid;
   globalLicense.nod = nod;
@@ -128,26 +129,28 @@ void loop()
 
     if (globalLicense.lid != 0 && globalLicense.duration > 0)
     {
-      int temp = runtime + (millis() / 60000);
+      runtime++; // tăng thời gian chạy từng phút
       preferences.begin("license", false);
-      if (!preferences.putULong("runtime", temp))
-      {
-        Serial.println("❌ Lỗi lưu runtime vào NVS");
-      }
+      preferences.putULong("runtime", runtime);
       preferences.end();
-      globalLicense.remain = globalLicense.duration > temp ? globalLicense.duration - temp : 0; // Ngăn remain âm
+      globalLicense.remain = globalLicense.duration > runtime ? globalLicense.duration - runtime : 0; // Ngăn remain âm
       // Kiểm tra license hết hạn
       if (globalLicense.remain <= 0 && !globalLicense.expired_flag)
       {
         globalLicense.expired_flag = true;
         globalLicense.remain = 0;
         expired = 1; // Giấy phép hết hạn
-        saveLicenseData();
+        saveLicenseData(false);
       }
-      else if (globalLicense.remain > 0 && !globalLicense.expired_flag)
+      else if (globalLicense.remain > 0 && globalLicense.expired_flag)
       {
-        expired = 0; // Giấy phép còn hạn
-        saveLicenseData();
+        globalLicense.expired_flag = false;
+        expired = 0;
+        saveLicenseData(false);
+      }
+      else
+      {
+        saveLicenseData(false); // Lưu runtime và remain
       }
     }
     else
@@ -156,18 +159,16 @@ void loop()
       expired = 1; // Hết hạn
       globalLicense.expired_flag = true;
       globalLicense.remain = 0;
-      saveLicenseData();
+      saveLicenseData(false);
     }
 
     // Cập nhật LED trạng thái
     if (globalLicense.expired_flag || globalLicense.remain <= 0)
     {
-      Serial.println(F("[LICENSE] Đã hết hạn- thiết bị ngưng hoạt động"));
       led.setState(LICENSE_EXPIRED);
     }
     else
     {
-      Serial.printf("🔓 License còn %d phút\n", globalLicense.remain);
       led.setState(NORMAL_STATUS);
     }
   }
