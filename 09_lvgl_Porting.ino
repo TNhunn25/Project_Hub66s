@@ -9,6 +9,8 @@
 #include "config.h"
 #include "function.h"
 #include "led_status.h"
+#include "packet_storage.h"
+
 
 // Biến toàn cục từ mesh_handler.h
 painlessMesh mesh;
@@ -90,6 +92,64 @@ void addNodeToList(int id, int lid, uint32_t nodeId, unsigned long time_)
     }
 }
 
+
+// // Kiểm tra xem MAC đã tồn tại trong danh sách chưa
+// bool isMacExist(uint32_t nodeId)
+// {
+//     for (int i = 0; i < Device.deviceCount; i++)
+//     {
+//         if (Device.NodeID[i] == nodeId)
+//         {
+//             return true; // MAC đã tồn tại
+//         }
+//     }
+//     return false;
+// }
+
+// Tìm chỉ số của LID trong danh sách, trả về -1 nếu chưa tồn tại
+int findLIDIndex(int lid)
+{
+    for (int i = 0; i < Device.deviceCount; i++)
+    {
+        if (Device.LocalID[i] == lid)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// // Thêm thiết bị vào danh sách, gộp các node cùng LID
+// void addNodeToList(int id, int lid, uint32_t nodeId, unsigned long time_)
+// {
+//     // Bỏ qua nếu node đã tồn tại
+//     if (isMacExist(nodeId))
+//         return;
+
+//     int lidIndex = findLIDIndex(lid);
+//     if (lidIndex >= 0)
+//     {
+//         // LID đã tồn tại, chỉ tăng số lượng thiết bị
+//         Device.LocalCount[lidIndex]++;
+//     }
+//     else if (Device.deviceCount < MAX_DEVICES)
+//     {
+//         // Thêm LID mới
+//         Device.NodeID[Device.deviceCount] = nodeId;
+//         Device.DeviceID[Device.deviceCount] = id;
+//         Device.LocalID[Device.deviceCount] = lid;
+//         Device.LocalCount[Device.deviceCount] = 1;
+//         Device.timeLIC[Device.deviceCount] = time_;
+
+//         Device.deviceCount++;
+
+//         char macStr[18];
+//         snprintf(macStr, sizeof(macStr), "0x%08X", nodeId);
+//         Serial.print("Thiết bị mới: ");
+//         Serial.println(macStr);
+//     }
+// }
+
 // Hiển thị danh sách thiết bị đã lưu
 void printDeviceList()
 {
@@ -101,10 +161,8 @@ void printDeviceList()
                  Device.NodeID[i] >> 24, (Device.NodeID[i] >> 16) & 0xFF,
                  (Device.NodeID[i] >> 8) & 0xFF, Device.NodeID[i] & 0xFF,
                  Device.DeviceID[i], Device.LocalID[i]);
-        Serial.print("Thiết bị ");
-        Serial.print(i + 1);
-        Serial.print(": ");
-        Serial.println(macStr);
+        Serial.printf("Thiết bị %d (LID %d - SL %d): %s\n", i + 1,
+                      Device.LocalID[i], Device.LocalCount[i], macStr);
     }
     Serial.println("------------------");
 }
@@ -128,6 +186,9 @@ void setup()
 
     Serial.begin(115200);
     Serial.println("[SENDER] Starting...");
+
+    // Khởi tạo bộ nhớ flash lưu trữ gói tin
+    initPacketStorage();
     
     Board *board = new Board();
     board->init();

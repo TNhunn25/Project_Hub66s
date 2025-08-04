@@ -11,6 +11,7 @@
 #include "led_status.h"
 #include "serial.h"
 #include "function.h"
+#include "packet_storage.h"
 extern painlessMesh mesh; // Khởi tạo đối tượng mesh toàn cục
 extern uint32_t lastTargetNode;
 
@@ -139,6 +140,9 @@ void onMeshReceive(uint32_t from, String &msg)
 {
     Serial.println("\n📩 Received response:");
 
+    // Lưu gói tin vào flash để giải phóng RAM sử dụng cho UI
+    storePacketToFlash(msg);
+
     StaticJsonDocument<512> doc;
     // lastTargetNode = from;
     DeserializationError error = deserializeJson(doc, msg);
@@ -162,13 +166,16 @@ void onMeshReceive(uint32_t from, String &msg)
 
     int status = payload.containsKey("status") ? payload["status"] : 0;
 
-    Serial.printf("\n[mesh RX] From nodeId = 0x%08X (Node ID = %d)  timestamp = %lu\n", from, id_des, timestamp);
+    Serial.printf("\n[mesh RX] From nodeId = 0x%08X (Node ID = %d)  timestamp = %lu\n", from, id_src, timestamp);
     Serial.printf("Opcode: 0x%02X   Status: %d\n", opcode, status);
     serializeJsonPretty(doc, Serial);
     Serial.println();
 
     // Gọi xử lý phản hồi
     processReceivedData(doc, opcode, payload, from);
+
+    // Giải phóng bộ nhớ tạm của chuỗi JSON
+    msg = "";
 }
 
 // // --- Gửi HUB_SET_LICENSE qua Mesh ---

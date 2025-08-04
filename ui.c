@@ -7,40 +7,43 @@
 #include "ui_helpers.h"
 
 ///////////////////// VARIABLES ////////////////////
-lv_anim_t * opaon_Animation(lv_obj_t * TargetObject, int delay);
-lv_anim_t * opaoff_Animation(lv_obj_t * TargetObject, int delay);
-lv_anim_t * MoveYIN_Animation(lv_obj_t * TargetObject, int delay);
-lv_anim_t * MoveYOUT_Animation(lv_obj_t * TargetObject, int delay);
+lv_anim_t *opaon_Animation(lv_obj_t *TargetObject, int delay);
+lv_anim_t *opaoff_Animation(lv_obj_t *TargetObject, int delay);
+lv_anim_t *MoveYIN_Animation(lv_obj_t *TargetObject, int delay);
+lv_anim_t *MoveYOUT_Animation(lv_obj_t *TargetObject, int delay);
 
 // EVENTS
-lv_obj_t * ui____initial_actions0;
+lv_obj_t *ui____initial_actions0;
 
 // IMAGES AND IMAGE SETS
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
 #if LV_COLOR_DEPTH != 16
-    #error "LV_COLOR_DEPTH should be 16bit to match SquareLine Studio's settings"
+#error "LV_COLOR_DEPTH should be 16bit to match SquareLine Studio's settings"
 #endif
-#if LV_COLOR_16_SWAP !=0
-    #error "LV_COLOR_16_SWAP should be 0 to match SquareLine Studio's settings"
+#if LV_COLOR_16_SWAP != 0
+#error "LV_COLOR_16_SWAP should be 0 to match SquareLine Studio's settings"
 #endif
 
 ///////////////////// ANIMATIONS ////////////////////
-lv_anim_t * opaon_Animation(lv_obj_t * TargetObject, int delay)
+lv_anim_t *opaon_Animation(lv_obj_t *TargetObject, int delay)
 {
-    lv_anim_t * out_anim;
-    ui_anim_user_data_t * PropertyAnimation_0_user_data = lv_mem_alloc(sizeof(ui_anim_user_data_t));
+    lv_anim_t *out_anim;
+    ui_anim_user_data_t *PropertyAnimation_0_user_data =
+        lv_mem_alloc(sizeof(ui_anim_user_data_t));
     PropertyAnimation_0_user_data->target = TargetObject;
     PropertyAnimation_0_user_data->val = -1;
     lv_anim_t PropertyAnimation_0;
     lv_anim_init(&PropertyAnimation_0);
     lv_anim_set_time(&PropertyAnimation_0, 100);
     lv_anim_set_user_data(&PropertyAnimation_0, PropertyAnimation_0_user_data);
-    lv_anim_set_custom_exec_cb(&PropertyAnimation_0, _ui_anim_callback_set_opacity);
+    lv_anim_set_custom_exec_cb(&PropertyAnimation_0,
+                               _ui_anim_callback_set_opacity);
     lv_anim_set_values(&PropertyAnimation_0, 0, 255);
     lv_anim_set_path_cb(&PropertyAnimation_0, lv_anim_path_linear);
     lv_anim_set_delay(&PropertyAnimation_0, delay + 0);
-    lv_anim_set_deleted_cb(&PropertyAnimation_0, _ui_anim_callback_free_user_data);
+    lv_anim_set_deleted_cb(&PropertyAnimation_0,
+                           _ui_anim_callback_free_user_data);
     lv_anim_set_playback_time(&PropertyAnimation_0, 0);
     lv_anim_set_playback_delay(&PropertyAnimation_0, 0);
     lv_anim_set_repeat_count(&PropertyAnimation_0, 0);
@@ -50,21 +53,24 @@ lv_anim_t * opaon_Animation(lv_obj_t * TargetObject, int delay)
 
     return out_anim;
 }
-lv_anim_t * opaoff_Animation(lv_obj_t * TargetObject, int delay)
+lv_anim_t *opaoff_Animation(lv_obj_t *TargetObject, int delay)
 {
-    lv_anim_t * out_anim;
-    ui_anim_user_data_t * PropertyAnimation_0_user_data = lv_mem_alloc(sizeof(ui_anim_user_data_t));
+    lv_anim_t *out_anim;
+    ui_anim_user_data_t *PropertyAnimation_0_user_data =
+        lv_mem_alloc(sizeof(ui_anim_user_data_t));
     PropertyAnimation_0_user_data->target = TargetObject;
     PropertyAnimation_0_user_data->val = -1;
     lv_anim_t PropertyAnimation_0;
     lv_anim_init(&PropertyAnimation_0);
     lv_anim_set_time(&PropertyAnimation_0, 500);
     lv_anim_set_user_data(&PropertyAnimation_0, PropertyAnimation_0_user_data);
-    lv_anim_set_custom_exec_cb(&PropertyAnimation_0, _ui_anim_callback_set_opacity);
+    lv_anim_set_custom_exec_cb(&PropertyAnimation_0,
+                               _ui_anim_callback_set_opacity);
     lv_anim_set_values(&PropertyAnimation_0, 255, 0);
     lv_anim_set_path_cb(&PropertyAnimation_0, lv_anim_path_linear);
     lv_anim_set_delay(&PropertyAnimation_0, delay + 0);
-    lv_anim_set_deleted_cb(&PropertyAnimation_0, _ui_anim_callback_free_user_data);
+    lv_anim_set_deleted_cb(&PropertyAnimation_0,
+                           _ui_anim_callback_free_user_data);
     lv_anim_set_playback_time(&PropertyAnimation_0, 0);
     lv_anim_set_playback_delay(&PropertyAnimation_0, 0);
     lv_anim_set_repeat_count(&PropertyAnimation_0, 0);
@@ -74,10 +80,11 @@ lv_anim_t * opaoff_Animation(lv_obj_t * TargetObject, int delay)
 
     return out_anim;
 }
-lv_anim_t * MoveYIN_Animation(lv_obj_t * TargetObject, int delay)
+lv_anim_t *MoveYIN_Animation(lv_obj_t *TargetObject, int delay)
 {
-    lv_anim_t * out_anim;
-    ui_anim_user_data_t * PropertyAnimation_0_user_data = lv_mem_alloc(sizeof(ui_anim_user_data_t));
+    lv_anim_t *out_anim;
+    ui_anim_user_data_t *PropertyAnimation_0_user_data =
+        lv_mem_alloc(sizeof(ui_anim_user_data_t));
     PropertyAnimation_0_user_data->target = TargetObject;
     PropertyAnimation_0_user_data->val = -1;
     lv_anim_t PropertyAnimation_0;
@@ -88,7 +95,8 @@ lv_anim_t * MoveYIN_Animation(lv_obj_t * TargetObject, int delay)
     lv_anim_set_values(&PropertyAnimation_0, -300, 0);
     lv_anim_set_path_cb(&PropertyAnimation_0, lv_anim_path_linear);
     lv_anim_set_delay(&PropertyAnimation_0, delay + 0);
-    lv_anim_set_deleted_cb(&PropertyAnimation_0, _ui_anim_callback_free_user_data);
+    lv_anim_set_deleted_cb(&PropertyAnimation_0,
+                           _ui_anim_callback_free_user_data);
     lv_anim_set_playback_time(&PropertyAnimation_0, 0);
     lv_anim_set_playback_delay(&PropertyAnimation_0, 0);
     lv_anim_set_repeat_count(&PropertyAnimation_0, 0);
@@ -99,10 +107,11 @@ lv_anim_t * MoveYIN_Animation(lv_obj_t * TargetObject, int delay)
 
     return out_anim;
 }
-lv_anim_t * MoveYOUT_Animation(lv_obj_t * TargetObject, int delay)
+lv_anim_t *MoveYOUT_Animation(lv_obj_t *TargetObject, int delay)
 {
-    lv_anim_t * out_anim;
-    ui_anim_user_data_t * PropertyAnimation_0_user_data = lv_mem_alloc(sizeof(ui_anim_user_data_t));
+    lv_anim_t *out_anim;
+    ui_anim_user_data_t *PropertyAnimation_0_user_data =
+        lv_mem_alloc(sizeof(ui_anim_user_data_t));
     PropertyAnimation_0_user_data->target = TargetObject;
     PropertyAnimation_0_user_data->val = -1;
     lv_anim_t PropertyAnimation_0;
@@ -113,7 +122,8 @@ lv_anim_t * MoveYOUT_Animation(lv_obj_t * TargetObject, int delay)
     lv_anim_set_values(&PropertyAnimation_0, 0, -320);
     lv_anim_set_path_cb(&PropertyAnimation_0, lv_anim_path_linear);
     lv_anim_set_delay(&PropertyAnimation_0, delay + 0);
-    lv_anim_set_deleted_cb(&PropertyAnimation_0, _ui_anim_callback_free_user_data);
+    lv_anim_set_deleted_cb(&PropertyAnimation_0,
+                           _ui_anim_callback_free_user_data);
     lv_anim_set_playback_time(&PropertyAnimation_0, 0);
     lv_anim_set_playback_delay(&PropertyAnimation_0, 0);
     lv_anim_set_repeat_count(&PropertyAnimation_0, 0);
@@ -132,9 +142,10 @@ void ui_init(void)
 {
     LV_EVENT_GET_COMP_CHILD = lv_event_register_id();
 
-    lv_disp_t * dispp = lv_disp_get_default();
-    lv_theme_t * theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED),
-                                               true, LV_FONT_DEFAULT);
+    lv_disp_t *dispp = lv_disp_get_default();
+    lv_theme_t *theme = lv_theme_default_init(
+        dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED),
+        true, LV_FONT_DEFAULT);
     lv_disp_set_theme(dispp, theme);
     ui_Intro_screen_init();
     ui_HOME_screen_init();
@@ -146,4 +157,18 @@ void ui_destroy(void)
 {
     ui_Intro_screen_destroy();
     ui_HOME_screen_destroy();
+    if (ui____initial_actions0 != NULL)
+    {
+        lv_obj_del(ui____initial_actions0);
+        ui____initial_actions0 = NULL;
+    }
+}
+
+void ui_reset(void)
+{
+    lv_obj_t *blank = lv_obj_create(NULL);
+    lv_disp_load_scr(blank);
+    ui_destroy();
+    ui_init();
+    lv_obj_del(blank);
 }

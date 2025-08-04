@@ -18,7 +18,7 @@ void update_config(char *localID, char *deviceID, char *nod)
     if (ui_TextArea8 != NULL)
     {
         lv_textarea_set_text(ui_TextArea8, deviceID);
-        lv_textarea_set_text(ui_TextArea8, nod); // Lưu ý: Ghi đè deviceID bằng nod, kiểm tra xem có đúng ý định không
+        lv_textarea_set_text(ui_TextArea10, nod); // Lưu ý: Ghi đè deviceID bằng nod, kiểm tra xem có đúng ý định không
     }
 }
 

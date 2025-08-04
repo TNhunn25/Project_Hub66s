@@ -68,6 +68,7 @@ LV_FONT_DECLARE(ui_font_timesnewroman);
 // UI INIT
 void ui_init(void);
 void ui_destroy(void);
+void ui_reset(void);
 
 #ifdef __cplusplus
 } /*extern "C"*/
