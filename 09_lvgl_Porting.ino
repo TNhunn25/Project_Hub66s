@@ -2,7 +2,6 @@
 #include <ArduinoJson.h>
 #include <MD5Builder.h>
 #include <time.h>
-#include "esp32-hal-psram.h"
 
 #include "protocol_handler.h"
 #include "mesh_handler.h"
@@ -10,6 +9,8 @@
 #include "config.h"
 #include "function.h"
 #include "led_status.h"
+#include "packet_storage.h"
+#include "device_storage.h"
 
 // Biến toàn cục từ mesh_handler.h
 painlessMesh mesh;
@@ -73,6 +74,27 @@ bool isMacExist(uint32_t nodeId)
 
 // Thêm MAC vào danh sách
 void addNodeToList(int id, int lid, uint32_t nodeId, unsigned long time_)
+{
+    if (Device.deviceCount < MAX_DEVICES && !isMacExist(nodeId))
+    {
+        Device.NodeID[Device.deviceCount] = nodeId;
+        Device.DeviceID[Device.deviceCount] = id;
+        Device.LocalID[Device.deviceCount] = lid;
+        Device.timeLIC[Device.deviceCount] = time_;
+
+        Device.deviceCount++;
+        char macStr[18];
+        snprintf(macStr, sizeof(macStr), "0x%08X", nodeId);
+        Serial.print("Thiết bị mới: ");
+        Serial.println(macStr);
+        // Lưu danh sách thiết bị ra flash để giải phóng RAM
+        saveDeviceList(Device);
+        // timer_out=millis();
+
+        // lv_timer_reset(timer);
+    }
+}
+
 {
     if (Device.deviceCount < MAX_DEVICES && !isMacExist(nodeId))
     {
@@ -185,6 +207,10 @@ void setup()
 
     Serial.begin(115200);
     Serial.println("[SENDER] Starting...");
+    // Khởi tạo SPIFF5 lưu trữ gói tin
+    initPacketStorage();
+    initDeviceStorage();
+    loadDeviceList(Device);
 
     Board *board = new Board();
     board->init();
