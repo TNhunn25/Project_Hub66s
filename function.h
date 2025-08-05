@@ -12,12 +12,12 @@ typedef struct {
 } Licence;
 extern Licence datalic;
 
-#define MAX_DEVICES 200
+#define MAX_DEVICES 100
 typedef struct {
     uint32_t NodeID[MAX_DEVICES]; // Lưu nodeId của từng thiết bị
     int DeviceID[MAX_DEVICES];
     int LocalID[MAX_DEVICES];
-    int LocalCount[MAX_DEVICES];  // nguyên nhân reset
+    // int LocalCount[MAX_DEVICES];  // nguyên nhân reset
     unsigned long timeLIC[MAX_DEVICES];
     int deviceCount;
 } device_info;

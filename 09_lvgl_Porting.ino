@@ -11,7 +11,6 @@
 #include "led_status.h"
 #include "packet_storage.h"
 
-
 // Biến toàn cục từ mesh_handler.h
 painlessMesh mesh;
 bool meshReady = false; // định nghĩa cờ từ mesh_handler.h
@@ -31,6 +30,7 @@ int config_lid = 123;
 int config_id = 2005;   // ID của LIC66S
 int id_des = MASTER_ID; // ID của MASTER (HUB66S)
 bool config_received = false;
+uint32_t nod = 0; // số lượng thiết bị, cập nhật khi có node mới
 int next_page = 0;
 int old_page = 0;
 // Biến retry ACK
@@ -55,6 +55,9 @@ bool expired_flag = false;          // Biến logic kiểm soát trạng thái c
 int expired = expired_flag ? 1 : 0; // 1 là hết hạn, 0 là còn hạn
 // lastTargetNode = from;
 uint32_t lastTargetNode = 0;
+
+// Hàng đợi lưu các gói tin cần ghi vào flash
+std::deque<String> packetPersistQueue;
 
 // bool = hasSend = false; // Biến kiểm soát đã gửi lệnh hay chưa
 
@@ -91,7 +94,6 @@ void addNodeToList(int id, int lid, uint32_t nodeId, unsigned long time_)
         // lv_timer_reset(timer);
     }
 }
-
 
 // // Kiểm tra xem MAC đã tồn tại trong danh sách chưa
 // bool isMacExist(uint32_t nodeId)
@@ -161,8 +163,8 @@ void printDeviceList()
                  Device.NodeID[i] >> 24, (Device.NodeID[i] >> 16) & 0xFF,
                  (Device.NodeID[i] >> 8) & 0xFF, Device.NodeID[i] & 0xFF,
                  Device.DeviceID[i], Device.LocalID[i]);
-        Serial.printf("Thiết bị %d (LID %d - SL %d): %s\n", i + 1,
-                      Device.LocalID[i], Device.LocalCount[i], macStr);
+        Serial.printf("Thiết bị %d (LID %d): %s\n", i + 1,
+                      Device.LocalID[i], macStr);
     }
     Serial.println("------------------");
 }
@@ -187,17 +189,17 @@ void setup()
     Serial.begin(115200);
     Serial.println("[SENDER] Starting...");
 
-    // Khởi tạo bộ nhớ flash lưu trữ gói tin
+    // Khởi tạo SPIFF5 lưu trữ gói tin
     initPacketStorage();
-    
+
     Board *board = new Board();
     board->init();
-    
-    #if LVGL_PORT_AVOID_TEARING_MODE
+
+#if LVGL_PORT_AVOID_TEARING_MODE
     auto lcd = board->getLCD();
     // When avoid tearing function is enabled, the frame buffer number should be set in the board driver
     lcd->configFrameBufferNumber(LVGL_PORT_DISP_BUFFER_NUM);
-    #if ESP_PANEL_DRIVERS_BUS_ENABLE_RGB && CONFIG_IDF_TARGET_ESP32S3
+#if ESP_PANEL_DRIVERS_BUS_ENABLE_RGB && CONFIG_IDF_TARGET_ESP32S3
     auto lcd_bus = lcd->getBus();
     /**
      * As the anti-tearing feature typically consumes more PSRAM bandwidth, for the ESP32-S3, we need to utilize the
@@ -210,10 +212,10 @@ void setup()
     }
 #endif
 #endif
-assert(board->begin());
+    assert(board->begin());
 
-Serial.println("Initializing LVGL");
-lvgl_port_init(board->getLCD(), board->getTouch());
+    Serial.println("Initializing LVGL");
+    lvgl_port_init(board->getLCD(), board->getTouch());
 
     Serial.println("Creating UI");
     /* Lock the mutex due to the LVGL APIs are not thread-safe */
@@ -227,13 +229,13 @@ lvgl_port_init(board->getLCD(), board->getTouch());
     WiFi.mode(WIFI_AP_STA);
     // delay(100);                       // Đợi WiFi mode ổn định
     // WiFi.setTxPower(WIFI_POWER_2dBm); // Giảm công suất phát để tiết kiệm năng lượng
-    
+
     // Đồng bộ thời gian qua NTP để timestamp đúng
     configTime(0, 0, "pool.ntp.org");
-    
+
     initMesh();                     // Khởi tạo mạng Mesh
     mesh.onReceive(&meshReceiveCb); // Đăng ký callback nhận dữ liệu Mesh
-    
+
     // LED trạng thái
     led.setState(CONNECTION_ERROR);
 }
@@ -258,6 +260,14 @@ void loop()
             Serial.println(output);
             lastSentTime = millis();
         }
+    }
+
+    // Ghi tuần tự các gói tin đã nhận xuống flash ngoài callback
+    if (!packetPersistQueue.empty())
+    {
+        storePacketToFlash(packetPersistQueue.front());
+        packetPersistQueue.pop_front();
+        delay(1); // nhường thời gian cho watchdog
     }
 
     // 2) Đợi config từ PC qua Serial
@@ -296,7 +306,7 @@ void loop()
             set_license(Device_ID, datalic.lid, mac_nhan, millis(), datalic.duration, expired, millis());
             break;
         case 4:
-            //gửi Broadcast cho toàn bộ hệ thống
+            // gửi Broadcast cho toàn bộ hệ thống
             Serial.println("Gửi lệnh LIC_GET_LICENSE");
 
             // getlicense(Device_ID, datalic.lid, mac_nhan, millis());
@@ -340,11 +350,13 @@ void loop()
         // lv_obj_clean(ui_Groupdevice);
         // lv_obj_invalidate(ui_Groupdevice);
 
-        if (timer != NULL) {
+        if (timer != NULL)
+        {
             lv_timer_del(timer);
             timer = NULL;
         }
-        if (ui_spinner1 != NULL) {
+        if (ui_spinner1 != NULL)
+        {
             lv_obj_del(ui_spinner1);
             ui_spinner1 = NULL;
         }

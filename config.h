@@ -125,6 +125,6 @@ extern int expired;
 extern time_t now;
 extern unsigned long lastSendTime;
 extern String device_id;
-extern uint32_t nod; // Số lượng thiết bị, mặc định là 10
+extern uint32_t nod; // Số lượng thiết bị, cập nhật theo node kết nối
 
 #endif // CONFIG_H
