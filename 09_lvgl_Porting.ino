@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include <MD5Builder.h>
 #include <time.h>
+#include "esp32-hal-psram.h"
 
 #include "protocol_handler.h"
 #include "mesh_handler.h"
@@ -9,7 +10,6 @@
 #include "config.h"
 #include "function.h"
 #include "led_status.h"
-#include "packet_storage.h"
 
 // Biến toàn cục từ mesh_handler.h
 painlessMesh mesh;
@@ -55,9 +55,6 @@ bool expired_flag = false;          // Biến logic kiểm soát trạng thái c
 int expired = expired_flag ? 1 : 0; // 1 là hết hạn, 0 là còn hạn
 // lastTargetNode = from;
 uint32_t lastTargetNode = 0;
-
-// Hàng đợi lưu các gói tin cần ghi vào flash
-std::deque<String> packetPersistQueue;
 
 // bool = hasSend = false; // Biến kiểm soát đã gửi lệnh hay chưa
 
@@ -189,9 +186,6 @@ void setup()
     Serial.begin(115200);
     Serial.println("[SENDER] Starting...");
 
-    // Khởi tạo SPIFF5 lưu trữ gói tin
-    initPacketStorage();
-
     Board *board = new Board();
     board->init();
 
@@ -260,14 +254,6 @@ void loop()
             Serial.println(output);
             lastSentTime = millis();
         }
-    }
-
-    // Ghi tuần tự các gói tin đã nhận xuống flash ngoài callback
-    if (!packetPersistQueue.empty())
-    {
-        storePacketToFlash(packetPersistQueue.front());
-        packetPersistQueue.pop_front();
-        delay(1); // nhường thời gian cho watchdog
     }
 
     // 2) Đợi config từ PC qua Serial

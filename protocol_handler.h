@@ -5,18 +5,14 @@
 #include <WiFi.h>
 #include <painlessMesh.h>
 #include <ArduinoJson.h>
-#include <deque>
 
 #include "config.h"
 #include "mesh_handler.h"
 #include "led_status.h"
 #include "serial.h"
 #include "function.h"
-#include "packet_storage.h"
 extern painlessMesh mesh; // Khởi tạo đối tượng mesh toàn cục
 extern uint32_t lastTargetNode;
-
-extern std::deque<String> packetPersistQueue;
 
 // Tạo tin nhắn phản hồi
 String createMessage(int id_src, int id_des, uint32_t mac_src, uint32_t mac_des,
@@ -142,9 +138,6 @@ void processReceivedData(StaticJsonDocument<512> message, uint8_t opcode, const 
 void onMeshReceive(uint32_t from, String &msg)
 {
     Serial.println("\n📩 Received response:");
-
-    // Xếp gói tin vào hàng đợi để xử lý lưu trữ sau
-    packetPersistQueue.push_back(msg);
 
     StaticJsonDocument<512> doc;
     // lastTargetNode = from;
