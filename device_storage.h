@@ -1,3 +1,6 @@
+#ifndef DEVICE_STORAGE_H
+#define DEVICE_STORAGE_H
+
 #include <Arduino.h>
 #include <Preferences.h>
 #include "function.h" // for device_info structure

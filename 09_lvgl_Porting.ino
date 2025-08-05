@@ -93,9 +93,7 @@ void addNodeToList(int id, int lid, uint32_t nodeId, unsigned long time_)
 
         // lv_timer_reset(timer);
     }
-}
 
-{
     if (Device.deviceCount < MAX_DEVICES && !isMacExist(nodeId))
     {
         Device.NodeID[Device.deviceCount] = nodeId;
