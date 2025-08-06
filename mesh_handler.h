@@ -44,15 +44,8 @@ inline void meshReceiveCb(uint32_t from, String &msg)
 inline void initMesh()
 {
     Serial.println("Khởi tạo Mesh...");
-    // WiFi.mode(WIFI_AP_STA);
-    // delay(100); // Đợi WiFi mode ổn định
-
     WiFi.mode(WIFI_AP_STA);
-    // Chờ WiFi chuyển sang chế độ AP_STA mà không chặn
-    while (WiFi.getMode() != WIFI_AP_STA)
-    {
-        yield();
-    }
+    delay(100); // Đợi WiFi mode ổn định
 
     // Chỉ log ERROR, STARTUP, CONNECTION ở ví dụ này
     mesh.setDebugMsgTypes(ERROR | STARTUP); // Nếu cần hiện kết nối thì thêm CONNECTION
