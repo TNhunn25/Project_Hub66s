@@ -44,14 +44,21 @@ inline void meshReceiveCb(uint32_t from, String &msg)
 inline void initMesh()
 {
     Serial.println("Khởi tạo Mesh...");
-    WiFi.mode(WIFI_AP_STA);
+    WiFi.mode(WIFI_STA);
     delay(100); // Đợi WiFi mode ổn định
+
+    // WiFi.mode(WIFI_STA);
+    // // Chờ WiFi chuyển sang chế độ AP_STA mà không chặn
+    // while (WiFi.getMode() != WIFI_STA)
+    // {
+    //     yield();
+    // }
 
     // Chỉ log ERROR, STARTUP, CONNECTION ở ví dụ này
     mesh.setDebugMsgTypes(ERROR | STARTUP); // Nếu cần hiện kết nối thì thêm CONNECTION
 
     // init(meshID, password, port, WiFiMode, channel)
-    mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT, WIFI_AP_STA, MESH_CHANNEL);
+    mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT, WIFI_STA, MESH_CHANNEL);
 
     // Đăng ký callback
     mesh.onReceive(&meshReceiveCb);
