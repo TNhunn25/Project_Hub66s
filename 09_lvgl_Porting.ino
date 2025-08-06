@@ -10,7 +10,6 @@
 #include "function.h"
 #include "led_status.h"
 #include "packet_storage.h"
-#include "device_storage.h"
 
 // Biến toàn cục từ mesh_handler.h
 painlessMesh mesh;
@@ -57,6 +56,9 @@ int expired = expired_flag ? 1 : 0; // 1 là hết hạn, 0 là còn hạn
 // lastTargetNode = from;
 uint32_t lastTargetNode = 0;
 
+// Hàng đợi lưu các gói tin cần ghi vào flash
+std::deque<String> packetPersistQueue;
+
 // bool = hasSend = false; // Biến kiểm soát đã gửi lệnh hay chưa
 
 // Kiểm tra xem MAC đã tồn tại trong danh sách chưa
@@ -75,25 +77,6 @@ bool isMacExist(uint32_t nodeId)
 // Thêm MAC vào danh sách
 void addNodeToList(int id, int lid, uint32_t nodeId, unsigned long time_)
 {
-    if (Device.deviceCount < MAX_DEVICES && !isMacExist(nodeId))
-    {
-        Device.NodeID[Device.deviceCount] = nodeId;
-        Device.DeviceID[Device.deviceCount] = id;
-        Device.LocalID[Device.deviceCount] = lid;
-        Device.timeLIC[Device.deviceCount] = time_;
-
-        Device.deviceCount++;
-        char macStr[18];
-        snprintf(macStr, sizeof(macStr), "0x%08X", nodeId);
-        Serial.print("Thiết bị mới: ");
-        Serial.println(macStr);
-        // Lưu danh sách thiết bị ra flash để giải phóng RAM
-        saveDeviceList(Device);
-        // timer_out=millis();
-
-        // lv_timer_reset(timer);
-    }
-
     if (Device.deviceCount < MAX_DEVICES && !isMacExist(nodeId))
     {
         Device.NodeID[Device.deviceCount] = nodeId;
@@ -205,10 +188,9 @@ void setup()
 
     Serial.begin(115200);
     Serial.println("[SENDER] Starting...");
+
     // Khởi tạo SPIFF5 lưu trữ gói tin
     initPacketStorage();
-    initDeviceStorage();
-    loadDeviceList(Device);
 
     Board *board = new Board();
     board->init();
@@ -278,6 +260,14 @@ void loop()
             Serial.println(output);
             lastSentTime = millis();
         }
+    }
+
+    // Ghi tuần tự các gói tin đã nhận xuống flash ngoài callback
+    if (!packetPersistQueue.empty())
+    {
+        storePacketToFlash(packetPersistQueue.front());
+        packetPersistQueue.pop_front();
+        delay(1); // nhường thời gian cho watchdog
     }
 
     // 2) Đợi config từ PC qua Serial
