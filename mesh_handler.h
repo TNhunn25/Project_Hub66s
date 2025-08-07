@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <painlessMesh.h>
 #include <ArduinoJson.h>
+#include <set>
 
 #include "config.h"
 // #include "protocol_handler.h"
@@ -13,6 +14,9 @@ extern painlessMesh mesh;
 
 // Cờ báo mesh đã init xong
 extern bool meshReady;
+
+// Danh sách node đã kết nối để tránh kết nối lại không cần thiết
+inline std::set<uint32_t> connectedNodes;
 
 void onMeshReceive(uint32_t from, String &msg);
 
@@ -58,16 +62,44 @@ inline void initMesh()
     Serial.println("✅ [mesh_handler] Khởi tạo painlessMesh thành công");
 
     // Log khi có node mới kết nối vào mesh
-    mesh.onNewConnection([](uint32_t nodeId)
-                         { mac_nhan = nodeId; // Lưu MAC nhận
-                            Serial.printf("➕ Node %u vừa tham gia mesh\n", nodeId); });
+    // mesh.onNewConnection([](uint32_t nodeId)
+    //                      { mac_nhan = nodeId; // Lưu MAC nhận
+    //                         Serial.printf("➕ Node %u vừa tham gia mesh\n", nodeId); });
+
+    // // Log khi có thay đổi kết nối trong mesh (node vào/ra)
+    // mesh.onChangedConnections([]()
+    //                           {
+    // Serial.printf("🔄 Danh sách node hiện tại: ");
+    // for (auto n : mesh.getNodeList()) Serial.printf("%u ", n);
+    // Serial.println(); });
+
+    // Log khi có node mới kết nối vào mesh, tránh lặp lại nếu đã kết nối
+    mesh.onNewConnection([&](uint32_t nodeId)
+                         {
+                             if (connectedNodes.count(nodeId) == 0)
+                             {
+                                 connectedNodes.insert(nodeId);
+                                 mac_nhan = nodeId; // Lưu MAC nhận
+                                 Serial.printf("➕ Node %u vừa tham gia mesh\n", nodeId);
+                             } });
+
+    // Khi có node rời khỏi mesh, loại bỏ khỏi danh sách
+    mesh.onDroppedConnection([&](uint32_t nodeId)
+                             {
+                                  connectedNodes.erase(nodeId);
+                                  Serial.printf("➖ Node %u đã rời mesh\n", nodeId); });
 
     // Log khi có thay đổi kết nối trong mesh (node vào/ra)
-    mesh.onChangedConnections([]()
+    mesh.onChangedConnections([&]()
                               {
-    Serial.printf("🔄 Danh sách node hiện tại: ");
-    for (auto n : mesh.getNodeList()) Serial.printf("%u ", n);
-    Serial.println(); });
+                                  Serial.printf("🔄 Danh sách node hiện tại: ");
+                                  connectedNodes.clear();
+                                  for (auto n : mesh.getNodeList())
+                                  {
+                                      Serial.printf("%u ", n);
+                                      connectedNodes.insert(n);
+                                  }
+                                  Serial.println(); });
 
     meshReady = true;
     Serial.println("✅ Mạng mesh đã sẵn sàng");
@@ -84,22 +116,21 @@ inline void initMesh()
 //     mesh.update();
 // }
 
+inline void sendToNode(uint32_t nodeId, const String &message)
+{
+    mesh.sendSingle(nodeId, message);
+    Serial.printf("📤 Sent to node %u: %s\n", nodeId, message.c_str());
+}
 
-  inline void sendToNode(uint32_t nodeId, const String &message)
-  {
-      mesh.sendSingle(nodeId, message);
-      Serial.printf("📤 Sent to node %u: %s\n", nodeId, message.c_str());
-  }
+inline void sendToAllNodes(const String &message)
+{
+    bool ok = mesh.sendBroadcast(message);
+    Serial.printf("📤 Broadcast %s: %s\n", ok ? "OK" : "FAIL", message.c_str());
+}
 
-  inline void sendToAllNodes(const String &message)
-  {
-      bool ok = mesh.sendBroadcast(message);
-      Serial.printf("📤 Broadcast %s: %s\n", ok ? "OK" : "FAIL", message.c_str());
-  }
-
-  inline void meshLoop()
-  {
-      mesh.update();
-  }
+inline void meshLoop()
+{
+    mesh.update();
+}
 
 #endif // MESH_HANDLER_H

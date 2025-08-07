@@ -226,7 +226,7 @@ void setup()
     lvgl_port_unlock();
 
     // Khởi tạo Wi-Fi Mesh
-    WiFi.mode(WIFI_AP_STA);
+    // WiFi.mode(WIFI_AP_STA);
     // delay(100);                       // Đợi WiFi mode ổn định
     // WiFi.setTxPower(WIFI_POWER_2dBm); // Giảm công suất phát để tiết kiệm năng lượng
 
