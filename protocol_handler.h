@@ -5,7 +5,7 @@
 #include <WiFi.h>
 #include <painlessMesh.h>
 #include <ArduinoJson.h>
-#include <deque>
+// #include <deque>
 
 #include "config.h"
 #include "mesh_handler.h"
@@ -16,7 +16,7 @@
 extern painlessMesh mesh; // Khởi tạo đối tượng mesh toàn cục
 extern uint32_t lastTargetNode;
 
-extern std::deque<String> packetPersistQueue;
+// extern std::deque<LicenseRecord> packetPersistQueue;
 
 // Tạo tin nhắn phản hồi
 String createMessage(int id_src, int id_des, uint32_t mac_src, uint32_t mac_des,
@@ -143,11 +143,7 @@ void onMeshReceive(uint32_t from, String &msg)
 {
     Serial.println("\n📩 Received response:");
 
-    // Xếp gói tin vào hàng đợi để xử lý lưu trữ sau
-    packetPersistQueue.push_back(msg);
-
     StaticJsonDocument<512> doc;
-    // lastTargetNode = from;
     DeserializationError error = deserializeJson(doc, msg);
 
     if (error)
@@ -174,9 +170,10 @@ void onMeshReceive(uint32_t from, String &msg)
     serializeJsonPretty(doc, Serial);
     Serial.println();
 
-    // Gọi xử lý phản hồi
+    // Gọi xử lý phản hồi (sẽ tự ghi flash nếu cần)
     processReceivedData(doc, opcode, payload, from);
 }
+
 
 // // --- Gửi HUB_SET_LICENSE qua Mesh ---
 void set_license(int id_des, int lid, uint32_t mac_des, time_t created, int duration, int expired, time_t now)

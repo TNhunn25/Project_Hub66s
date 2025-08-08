@@ -10,6 +10,7 @@
 #include "function.h"
 #include "led_status.h"
 #include "packet_storage.h"
+#include "device_storage.h"
 
 // Biến toàn cục từ mesh_handler.h
 painlessMesh mesh;
@@ -56,8 +57,11 @@ int expired = expired_flag ? 1 : 0; // 1 là hết hạn, 0 là còn hạn
 // lastTargetNode = from;
 uint32_t lastTargetNode = 0;
 
-// Hàng đợi lưu các gói tin cần ghi vào flash
-std::deque<String> packetPersistQueue;
+// // Hàng đợi lưu các gói tin cần ghi vào flash
+// std::deque<String> packetPersistQueue;
+
+// // Hàng đợi lưu các bản ghi license cần ghi vào flash
+// std::deque<LicenseRecord> packetPersistQueue;
 
 // bool = hasSend = false; // Biến kiểm soát đã gửi lệnh hay chưa
 
@@ -85,6 +89,18 @@ void addNodeToList(int id, int lid, uint32_t nodeId, unsigned long time_)
         Device.timeLIC[Device.deviceCount] = time_;
 
         Device.deviceCount++;
+        // Lưu danh sách thiết bị cập nhật xuống flash
+        saveDeviceList(Device);
+
+        // Tạo bản ghi license và lưu ngay vào flash
+        LicenseRecord rec{};
+        rec.deviceID = id;
+        rec.localID = lid;
+        rec.numberDevice = Device.deviceCount;
+        rec.mac = nodeId;
+        rec.time = time_;
+        storeLicenseRecord(rec);
+
         char macStr[18];
         snprintf(macStr, sizeof(macStr), "0x%08X", nodeId);
         Serial.print("Thiết bị mới: ");
@@ -189,8 +205,31 @@ void setup()
     Serial.begin(115200);
     Serial.println("[SENDER] Starting...");
 
-    // Khởi tạo SPIFF5 lưu trữ gói tin
+    // Khởi tạo NVS cho lưu trữ gói tin và danh sách thiết bị
     initPacketStorage();
+    initDeviceStorage();
+
+    // Tải dữ liệu đã lưu từ flash nếu có
+    if (loadDeviceList(Device))
+    {
+        Serial.printf("Khôi phục %d thiết bị từ flash\n", Device.deviceCount++);
+    }
+    else
+    {
+        Serial.println("Chưa có danh sách thiết bị lưu trong flash");
+    }
+    LicenseRecord lastRec;
+    if (loadLastLicenseRecord(lastRec))
+    {
+        Serial.println("Thông tin Get License từ flash:");
+        Serial.printf("DeviceID: %d  LocalID: %d  Number: %d  MAC: 0x%08X  Time: %lu\n",
+                      lastRec.deviceID, lastRec.localID, lastRec.numberDevice,
+                      lastRec.mac, lastRec.time);
+    }
+    else
+    {
+        Serial.println("Chưa có dữ liệu license lưu trong flash");
+    }
 
     Board *board = new Board();
     board->init();
@@ -225,11 +264,6 @@ void setup()
     /* Release the mutex */
     lvgl_port_unlock();
 
-    // Khởi tạo Wi-Fi Mesh
-    // WiFi.mode(WIFI_AP_STA);
-    // delay(100);                       // Đợi WiFi mode ổn định
-    // WiFi.setTxPower(WIFI_POWER_2dBm); // Giảm công suất phát để tiết kiệm năng lượng
-
     // Đồng bộ thời gian qua NTP để timestamp đúng
     configTime(0, 0, "pool.ntp.org");
 
@@ -262,13 +296,13 @@ void loop()
         }
     }
 
-    // Ghi tuần tự các gói tin đã nhận xuống flash ngoài callback
-    if (!packetPersistQueue.empty())
-    {
-        storePacketToFlash(packetPersistQueue.front());
-        packetPersistQueue.pop_front();
-        delay(1); // nhường thời gian cho watchdog
-    }
+    // // Ghi tuần tự các gói tin đã nhận xuống flash ngoài callback
+    // if (!packetPersistQueue.empty())
+    // {
+    //     storeLicenseRecord(packetPersistQueue.front());
+    //     packetPersistQueue.pop_front();
+    //     delay(1); // nhường thời gian cho watchdog
+    // }
 
     // 2) Đợi config từ PC qua Serial
     // if (!config_received)

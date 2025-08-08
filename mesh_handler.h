@@ -92,9 +92,11 @@ inline void initMesh()
     // Log khi có thay đổi kết nối trong mesh (node vào/ra)
     mesh.onChangedConnections([&]()
                               {
-                                  Serial.printf("🔄 Danh sách node hiện tại: ");
+                                  auto nodeList = mesh.getNodeList();
+                                  Serial.printf("🔄 Danh sách node hiện tại có tổng %u node: ",
+                                                (unsigned int)nodeList.size());
                                   connectedNodes.clear();
-                                  for (auto n : mesh.getNodeList())
+                                  for (auto n : nodeList)
                                   {
                                       Serial.printf("%u ", n);
                                       connectedNodes.insert(n);

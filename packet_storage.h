@@ -4,40 +4,36 @@
 #include <Arduino.h>
 #include <Preferences.h>
 
-// Lưu trữ dữ liệu gói tin vào flash để giải phóng RAM
-// Sử dụng NVS thông qua thư viện Preferences
+struct LicenseRecord
+{
+    int deviceID;
+    int localID;
+    int numberDevice;
+    uint32_t mac;
+    unsigned long time;
+};
+
 static Preferences packetPrefs;
-static uint32_t packetIndex = 0; // Chỉ số gói tin hiện tại trong NVS
 
 inline void initPacketStorage()
 {
-    // Mở bộ nhớ flash với namespace "packets"
     packetPrefs.begin("packets", false);
-    // Lấy chỉ số gói tin cuối cùng đã lưu
-    packetIndex = packetPrefs.getUInt("idx", 0);
 }
 
-inline void storePacketToFlash(const String &packet)
+inline void storeLicenseRecord(const LicenseRecord &rec)
 {
-    // Lưu chuỗi gói tin vào flash với key riêng
-    String key = "pkt" + String(packetIndex++);
-    packetPrefs.putString(key.c_str(), packet);
-    packetPrefs.putUInt("idx", packetIndex);
+    packetPrefs.putBytes("last", &rec, sizeof(rec));
+    Serial.println("Đã lưu thông tin license vào flash");
 }
 
-inline String loadPacketFromFlash(uint32_t index)
+inline bool loadLastLicenseRecord(LicenseRecord &rec)
 {
-    // Đọc gói tin theo chỉ số từ flash
-    String key = "pkt" + String(index);
-    return packetPrefs.getString(key.c_str(), "");
-}
-
-// Đọc gói tin mới nhất
-inline String loadLastPacketFromFlash()
-{
-    if (packetIndex == 0)
-        return "";
-    return loadPacketFromFlash(packetIndex - 1);
+    if (!packetPrefs.isKey("last"))
+    {
+        return false;
+    }
+    packetPrefs.getBytes("last", &rec, sizeof(rec));
+    return true;
 }
 
 #endif // PACKET_STORAGE_H
