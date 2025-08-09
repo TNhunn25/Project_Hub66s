@@ -286,7 +286,7 @@ void loop()
         if (awaitingAck && millis() - lastSentTime > 5000)
         {
             Serial.println("⏱ Retry last command");
-            String output = createMessage(config_id, 0, mesh.getNodeId(), lastTargetNode,
+            String output = createMessage(config_id, mesh.getNodeId(), 0,  lastTargetNode,
                                           lastOpcode, lastData.as<JsonVariant>(), millis());
 
             mesh.sendSingle(lastTargetNode, output);

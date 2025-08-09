@@ -98,8 +98,8 @@ void processReceivedData(StaticJsonDocument<512> message, uint8_t opcode, const 
         sprintf(messger, "Status: %d \nLocal ID: %d\n", Status, lid); // đổi %s sang %d
         if (error_msg != NULL)
         {
-            strcat(messger, "Lỗi: ");
-            strcat(messger, error_msg);
+            strncat(messger, "Lỗi: ", sizeof(messger) - strlen(messger) - 1);
+            strncat(messger, error_msg, sizeof(messger) - strlen(messger) - 1);
             /* code */
         }
 
@@ -197,7 +197,7 @@ void set_license(int id_des, int lid, uint32_t mac_des, time_t created, int dura
     // meshReceiveCb(mesh.getNodeId(), output);
     // mesh.sendSingle(mac_des, output);
 
-    meshReceiveCb(mesh.getNodeId(), output);
+    // meshReceiveCb(mesh.getNodeId(), output);
     sendToNode(mac_des, output);
 
     Serial.println("nhay vao thu vien protocol_handler.h cho set_license");
