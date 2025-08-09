@@ -176,11 +176,11 @@ void onMeshReceive(uint32_t from, String &msg)
 
 
 // // --- Gửi HUB_SET_LICENSE qua Mesh ---
-void set_license(int id_src, int lid, uint32_t mac_src, time_t created, int duration, int expired, time_t now)
+void set_license(int id_des, int lid, uint32_t mac_des, time_t created, int duration, int expired, time_t now)
 {
-    uint32_t mac_des = mesh.getNodeId(); // MAC nguồn
+    uint32_t mac_src = mesh.getNodeId(); // MAC nguồn
     int opcode = LIC_SET_LICENSE;
-    int id_des = config_id; // ID của LIC66S
+    int id_src = config_id; // ID của LIC66S
 
     DynamicJsonDocument dataDoc(256);
     dataDoc["lid"] = lid;
@@ -195,10 +195,10 @@ void set_license(int id_src, int lid, uint32_t mac_src, time_t created, int dura
         return;
     }
     // meshReceiveCb(mesh.getNodeId(), output);
-    mesh.sendSingle(mac_des, output);
+    // mesh.sendSingle(mac_des, output);
 
     meshReceiveCb(mesh.getNodeId(), output);
-    // sendToNode(mac_des, output);
+    sendToNode(mac_des, output);
 
     Serial.println("nhay vao thu vien protocol_handler.h cho set_license");
     Serial.println("\n📤 Gửi HUB_SET_LICENSE:");
