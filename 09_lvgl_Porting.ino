@@ -28,7 +28,7 @@ char messger[128];
 uint8_t button = 0;
 // Biến lưu cấu hình
 int config_lid = 123;
-int config_id = 2005;   // ID của LIC66S
+int config_id = 2001;   // ID của LIC66S
 int id_des = MASTER_ID; // ID của MASTER (HUB66S)
 bool config_received = false;
 uint32_t nod = 0; // số lượng thiết bị, cập nhật khi có node mới
@@ -212,7 +212,7 @@ void setup()
     // Tải dữ liệu đã lưu từ flash nếu có
     if (loadDeviceList(Device))
     {
-        Serial.printf("Khôi phục %d thiết bị từ flash\n", Device.deviceCount++);
+        Serial.printf("Khôi phục %d thiết bị từ flash\n", Device.deviceCount);
     }
     else
     {
@@ -360,7 +360,7 @@ void loop()
         }
         button = 0;
     }
-    // delay(10);
+    // delay(10); để delay chỗ này sẽ bị reset chip
 
     if (enable_print_ui_set)
     {
@@ -403,10 +403,10 @@ void loop()
             next_page = 0; // Quay về trang đầu
         }
         old_page = next_page;
-        char buf[64];
-        snprintf(buf, sizeof(buf), "LIST DEVICE: %2d - Page %2d", Device.deviceCount + 1, next_page + 1);
-        Serial.printf("BUF= %s\n", buf);
-        lv_label_set_text(ui_Label7, buf);
+        // char buf[64];
+        // snprintf(buf, sizeof(buf), "LIST DEVICE: %2d - Page %2d", Device.deviceCount, next_page + 1);
+        // Serial.printf("BUF= %s\n", buf);
+        // lv_label_set_text(ui_Label7, buf);
         // int startIdx = next_page * maxLinesPerPage;
         // int endIdx = startIdx + maxLinesPerPage;
 
@@ -454,6 +454,7 @@ void loop()
             char buf[64];
             snprintf(buf, sizeof(buf), "LIST DEVICE: %2d - Page %2d", Device.deviceCount, next_page + 1);
             lv_label_set_text(ui_Label7, buf);
+            Serial.printf("BUF= %s\n", buf);
         }
 
         for (int i = startIdx; i < endIdx; i++)
@@ -464,7 +465,7 @@ void loop()
             snprintf(macStr, sizeof(macStr), "0x%08X", Device.NodeID[i]);
             snprintf(idStr, sizeof(idStr), "%d", Device.DeviceID[i]);
             snprintf(lidStr, sizeof(lidStr), "%d", Device.LocalID[i]);
-            snprintf(timeStr, sizeof(timeStr), "%d", Device.timeLIC[i]);
+            snprintf(timeStr, sizeof(timeStr), "%lu", Device.timeLIC[i]);  //chuyển %d = %lu
             snprintf(nodStr, sizeof(nodStr), "%d", i + 1);
             lv_obj_t *ui_DeviceINFO = ui_DeviceINFO1_create(ui_Groupdevice, idStr, lidStr, nodStr, macStr, timeStr);
         }

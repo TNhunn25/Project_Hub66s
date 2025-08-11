@@ -24,6 +24,9 @@ void onMeshReceive(uint32_t from, String &msg);
 inline void meshReceiveCb(uint32_t from, String &msg)
 {
 
+    if (from == mesh.getNodeId())
+        return; // 🚫 bỏ mọi gói do chính mình phát
+
     Serial.printf("[mesh RX] from %u: %s\n", from, msg.c_str());
 
     // Bỏ qua những frame không phải JSON

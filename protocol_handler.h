@@ -174,11 +174,10 @@ void onMeshReceive(uint32_t from, String &msg)
     processReceivedData(doc, opcode, payload, from);
 }
 
-
 // // --- Gửi HUB_SET_LICENSE qua Mesh ---
-void set_license(int id_src, int lid, uint32_t mac_src, time_t created, int duration, int expired, time_t now)
+void set_license(int id_src, int id_des, int lid, uint32_t mac_des, time_t created, int duration, int expired, time_t now)
 {
-    uint32_t mac_des = mesh.getNodeId(); // MAC nguồn
+    uint32_t mac_src = mesh.getNodeId(); // MAC nguồn
     int opcode = LIC_SET_LICENSE;
     int id_des = config_id; // ID của LIC66S
 
@@ -187,7 +186,6 @@ void set_license(int id_src, int lid, uint32_t mac_src, time_t created, int dura
     dataDoc["created"] = created;
     dataDoc["duration"] = duration;
     dataDoc["expired"] = expired;
-
 
     String output = createMessage(id_src, id_des, mac_src, mac_des, opcode, dataDoc, now);
     if (output.length() > sizeof(message.payload))
@@ -198,61 +196,25 @@ void set_license(int id_src, int lid, uint32_t mac_src, time_t created, int dura
     // Chờ đến khi node đích có trong mạng mesh trước khi gửi
     const unsigned long timeout = 5000; // thời gian chờ tối đa 5 giây
     unsigned long start = millis();
-    while (!mesh.isConnected(mac_src) && (millis() - start < timeout))
+    while (!mesh.isConnected(mac_des) && (millis() - start < timeout))
     {
         mesh.update(); // duy trì mesh và tìm node
         delay(50);
     }
 
-    if (!mesh.isConnected(mac_src))
+    if (!mesh.isConnected(mac_des))
     {
-        Serial.printf("❌ Node 0x%08X chưa kết nối, hủy gửi HUB_SET_LICENSE\n", mac_src);
+        Serial.printf("❌ Node 0x%08X chưa kết nối, hủy gửi HUB_SET_LICENSE\n", mac_des);
         return;
     }
 
-    meshReceiveCb(mesh.getNodeId(), output);
-    sendToNode(mac_src, output);
-
-    // String output = createMessage(id_src, id_des, mac_src, mac_des, opcode, dataDoc, now);
-    // if (output.length() > sizeof(message.payload))
-    // {
-    //     Serial.println("❌ Payload quá lớn!");
-    //     return;
-    // }
     // meshReceiveCb(mesh.getNodeId(), output);
-    // mesh.sendSingle(mac_des, output);
-
-    // meshReceiveCb(mesh.getNodeId(), output);
-    // sendToNode(mac_des, output);
+    sendToNode(mac_des, output);
 
     Serial.println("nhay vao thu vien protocol_handler.h cho set_license");
     Serial.println("\n📤 Gửi HUB_SET_LICENSE:");
     Serial.println(output);
 }
-
-// --- Gửi HUB_GET_LICENSE qua Mesh ---
-// void getlicense(int id_des, int lid, uint32_t mac_des, unsigned long now)
-// {
-//     int opcode = LIC_GET_LICENSE;
-//     uint32_t mac_src = mesh.getNodeId();
-//     int id_src = config_id; // ID của LIC66S
-
-//     DynamicJsonDocument dataDoc(128);
-//     dataDoc["lid"] = lid;
-//     String output = createMessage(id_src, id_des, mac_src, mac_des, opcode, dataDoc, now);
-//     if (output.length() > sizeof(message.payload))
-//     {
-//         Serial.println("❌ Payload quá lớn!");
-//         return;
-//     }
-
-//     // Gửi gói tin đến mac_des (có thể là broadcast nếu mac_des == 0)
-//     // meshReceiveCb(mesh.getNodeId(), output);
-//     mesh.sendSingle(mac_des, output);
-//     Serial.println("nhay vao thu vien protocol_handler.h cho getlicense");
-//     Serial.println("📤 Gửi HUB_GET_LICENSE:");
-//     Serial.println(output);
-// }
 
 void getlicense(int id_des, int lid, uint32_t mac_des, unsigned long now)
 {
@@ -289,5 +251,29 @@ void getlicense(int id_des, int lid, uint32_t mac_des, unsigned long now)
     Serial.println("📤 Gửi HUB_GET_LICENSE:");
     Serial.println(output);
 }
+
+// --- Gửi HUB_GET_LICENSE qua Mesh ---
+// void getlicense(int id_des, int lid, uint32_t mac_des, unsigned long now)
+// {
+//     int opcode = LIC_GET_LICENSE;
+//     uint32_t mac_src = mesh.getNodeId();
+//     int id_src = config_id; // ID của LIC66S
+
+//     DynamicJsonDocument dataDoc(128);
+//     dataDoc["lid"] = lid;
+//     String output = createMessage(id_src, id_des, mac_src, mac_des, opcode, dataDoc, now);
+//     if (output.length() > sizeof(message.payload))
+//     {
+//         Serial.println("❌ Payload quá lớn!");
+//         return;
+//     }
+
+//     // Gửi gói tin đến mac_des (có thể là broadcast nếu mac_des == 0)
+//     // meshReceiveCb(mesh.getNodeId(), output);
+//     mesh.sendSingle(mac_des, output);
+//     Serial.println("nhay vao thu vien protocol_handler.h cho getlicense");
+//     Serial.println("📤 Gửi HUB_GET_LICENSE:");
+//     Serial.println(output);
+// }
 
 #endif // PROTOCOL_HANDLER_H
