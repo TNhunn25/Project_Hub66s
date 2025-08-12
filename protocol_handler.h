@@ -179,7 +179,7 @@ void set_license(int id_src, int id_des, int lid, uint32_t mac_des, time_t creat
 {
     uint32_t mac_src = mesh.getNodeId(); // MAC nguồn
     int opcode = LIC_SET_LICENSE;
-    int id_des = config_id; // ID của LIC66S
+    // int id_des = config_id; // ID của LIC66S
 
     DynamicJsonDocument dataDoc(256);
     dataDoc["lid"] = lid;
@@ -277,3 +277,4 @@ void getlicense(int id_des, int lid, uint32_t mac_des, unsigned long now)
 // }
 
 #endif // PROTOCOL_HANDLER_H
+
