@@ -141,6 +141,8 @@ void processReceivedData(StaticJsonDocument<512> message, uint8_t opcode, const 
 
 void onMeshReceive(uint32_t from, String &msg)
 {
+    Serial.println("\n📩 Received response:");
+
     StaticJsonDocument<512> doc;
     DeserializationError error = deserializeJson(doc, msg);
 
@@ -151,16 +153,10 @@ void onMeshReceive(uint32_t from, String &msg)
         return;
     }
 
-    // Bỏ qua gói tin do chính thiết bị gửi ra
-    int id_src = doc["id_src"];
-    if (id_src == config_id)
-        return;
-
-    Serial.println("\n📩 Received response:");
-
     // Trích thông tin cần thiết từ gói tin
     uint8_t opcode = doc["opcode"];
     JsonObject payload = doc["data"];
+    int id_src = doc["id_src"];
     int id_des = doc["id_des"];
     String mac_src = doc["mac_src"];
     String mac_des = doc["mac_des"];
@@ -186,7 +182,6 @@ void set_license(int id_src, int id_des, int lid,  uint32_t mac_des, time_t crea
     // int id_des = config_id; // ID của LIC66S
 
     DynamicJsonDocument dataDoc(256);
-    // dataDoc["id"] = id_src;
     dataDoc["lid"] = lid;
     dataDoc["created"] = created;
     dataDoc["duration"] = duration;
@@ -213,7 +208,6 @@ void set_license(int id_src, int id_des, int lid,  uint32_t mac_des, time_t crea
         return;
     }
 
-    // meshReceiveCb(mesh.getNodeId(), output);
     sendToNode(mac_des, output);
 
     Serial.println("nhay vao thu vien protocol_handler.h cho set_license");
