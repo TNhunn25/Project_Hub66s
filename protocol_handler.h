@@ -141,8 +141,6 @@ void processReceivedData(StaticJsonDocument<512> message, uint8_t opcode, const 
 
 void onMeshReceive(uint32_t from, String &msg)
 {
-    Serial.println("\n📩 Received response:");
-
     StaticJsonDocument<512> doc;
     DeserializationError error = deserializeJson(doc, msg);
 
@@ -153,10 +151,16 @@ void onMeshReceive(uint32_t from, String &msg)
         return;
     }
 
+    // Bỏ qua gói tin do chính thiết bị gửi ra
+    int id_src = doc["id_src"];
+    if (id_src == config_id)
+        return;
+
+    Serial.println("\n📩 Received response:");
+
     // Trích thông tin cần thiết từ gói tin
     uint8_t opcode = doc["opcode"];
     JsonObject payload = doc["data"];
-    int id_src = doc["id_src"];
     int id_des = doc["id_des"];
     String mac_src = doc["mac_src"];
     String mac_des = doc["mac_des"];
@@ -175,19 +179,20 @@ void onMeshReceive(uint32_t from, String &msg)
 }
 
 // // --- Gửi HUB_SET_LICENSE qua Mesh ---
-void set_license(int id_src, int id_des, int lid, uint32_t mac_des, time_t created, int duration, int expired, time_t now)
+void set_license(int id_src, int id_des, int lid,  uint32_t mac_des, time_t created, int duration, int expired, time_t now)
 {
     uint32_t mac_src = mesh.getNodeId(); // MAC nguồn
     int opcode = LIC_SET_LICENSE;
     // int id_des = config_id; // ID của LIC66S
 
     DynamicJsonDocument dataDoc(256);
+    // dataDoc["id"] = id_src;
     dataDoc["lid"] = lid;
     dataDoc["created"] = created;
     dataDoc["duration"] = duration;
     dataDoc["expired"] = expired;
 
-    String output = createMessage(id_src, id_des, mac_src, mac_des, opcode, dataDoc, now);
+    String output = createMessage(id_src, id_des, mac_des, mac_src, opcode, dataDoc, now);
     if (output.length() > sizeof(message.payload))
     {
         Serial.println("❌ Payload quá lớn!");
@@ -277,4 +282,3 @@ void getlicense(int id_des, int lid, uint32_t mac_des, unsigned long now)
 // }
 
 #endif // PROTOCOL_HANDLER_H
-

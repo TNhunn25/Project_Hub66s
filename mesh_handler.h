@@ -23,17 +23,15 @@ void onMeshReceive(uint32_t from, String &msg);
 // Callback nhận dữ liệu từ mesh
 inline void meshReceiveCb(uint32_t from, String &msg)
 {
-
+    // Bỏ qua gói tin do chính node phát ra
     if (from == mesh.getNodeId())
-        return; // 🚫 bỏ mọi gói do chính mình phát
-
-    Serial.printf("[mesh RX] from %u: %s\n", from, msg.c_str());
+        return;
 
     // Bỏ qua những frame không phải JSON
     if (!msg.startsWith("{"))
         return;
 
-    // Xử lý dữ liệu nhận được
+    // Phân tích JSON để kiểm tra id nguồn
     StaticJsonDocument<256> doc;
     DeserializationError error = deserializeJson(doc, msg);
 
@@ -43,6 +41,14 @@ inline void meshReceiveCb(uint32_t from, String &msg)
         Serial.println(error.c_str());
         return;
     }
+
+    // Nếu id nguồn trùng với id của thiết bị thì bỏ qua
+    int id_src = doc["id_src"] | 0;
+    if (id_src == config_id)
+        return;
+
+    Serial.printf("[mesh RX] from %u: %s\n", from, msg.c_str());
+
     // Gọi handler JSON chuyên biệt
     onMeshReceive(from, msg);
 }
