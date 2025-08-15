@@ -228,7 +228,7 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
                 respDoc["id"] = config_id;
                 // respDoc["nod"] = globalLicense.nod;
                 respDoc["status"] = 0;
-                sendResponse(config_id, id_src, mac_des, mac_src, LIC_SET_LICENSE | 0x80, respDoc, from);
+                sendResponse(config_id, id_src,mac_des, mac_src, LIC_SET_LICENSE | 0x80, respDoc, from);
                 Serial.println("✅ Cập nhật giấy phép thành công: LID = " + String(lid) + ", ID = " + String(config_id));
                 led.setState(FLASH_TWICE);
                 while (led.isBusy())
@@ -253,7 +253,7 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
             respDoc["status"] = 1;
             respDoc["error_msg"] = error_msg;
             Serial.println("❌ Lỗi: " + error_msg + " (LID = " + String(lid) + ", ID = " + String(id) + ", config_id = " + String(config_id) + ")");
-            sendResponse(config_id, id_src, mac_src, mac_des, LIC_SET_LICENSE | 0x80, respDoc, from);
+            sendResponse(config_id, id_src, mac_des, mac_src, LIC_SET_LICENSE | 0x80, respDoc, from);
             led.setState(CONNECTION_ERROR);
         }
         break;
@@ -273,7 +273,7 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
             respDoc["nod"] = globalLicense.nod;
             respDoc["status"] = 0;
             Serial.println("✅ License info sent for LID = " + String(config_lid));
-            sendResponse(config_id, id_src, mac_src, mac_des, LIC_GET_LICENSE | 0x80, respDoc, from);
+            sendResponse(config_id, id_src, mac_des, mac_src, LIC_GET_LICENSE | 0x80, respDoc, from);
             led.setState(FLASH_TWICE);
             while (led.isBusy())
             {
@@ -347,7 +347,7 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
             respDoc["error_msg"] = error_msg;
             Serial.println("❌ Lỗi: " + error_msg + " (LID = " + String(lid) + ", ID = " + String(id) + ", config_id = " + String(config_id) + ")");
         }
-        // sendResponse(config_id, id_src, mac_src, mac_des, CONFIG_DEVICE | 0x80, respDoc, from);
+        sendResponse(config_id, id_src, mac_src, mac_des, CONFIG_DEVICE | 0x80, respDoc, from);
         break;
     }
     case LIC_LICENSE_DELETE:
@@ -365,7 +365,7 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
             globalLicense.expired_flag = false;
             saveLicenseData();
         }
-        // sendResponse(config_id, id_src, mac_src, mac_des, LIC_LICENSE_DELETE | 0x80, respDoc, from);
+        sendResponse(config_id, id_src, mac_src, mac_des, LIC_LICENSE_DELETE | 0x80, respDoc, from);
         Serial.println(lid == globalLicense.lid ? "✅ Đã xóa license cho LID = " + String(lid) : "❌ Không tìm thấy license cho LID = " + String(lid));
         led.setState(lid == globalLicense.lid ? NORMAL_STATUS : CONNECTION_ERROR);
         break;
@@ -380,7 +380,7 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
         saveLicenseData();
         StaticJsonDocument<256> respDoc;
         respDoc["status"] = 0;
-        // sendResponse(config_id, id_src, mac_src, mac_des, LIC_LICENSE_DELETE_ALL | 0x80, respDoc, from);
+        sendResponse(config_id, id_src, mac_src, mac_des, LIC_LICENSE_DELETE_ALL | 0x80, respDoc, from);
         Serial.println("✅ Đã xóa tất cả license.");
         led.setState(NORMAL_STATUS);
         break;
@@ -390,7 +390,7 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
         StaticJsonDocument<256> respDoc;
         respDoc["time"] = millis() / 1000;
         respDoc["status"] = 0;
-        // sendResponse(config_id, id_src, mac_src, mac_des, LIC_TIME_GET | 0x80, respDoc, from);
+        sendResponse(config_id, id_src, mac_src, mac_des, LIC_TIME_GET | 0x80, respDoc, from);
         Serial.println("✅ Time info sent.");
         break;
     }
@@ -400,7 +400,7 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
         respDoc["deviceName"] = globalLicense.deviceName;
         respDoc["version"] = globalLicense.version;
         respDoc["status"] = 0;
-        // sendResponse(config_id, id_src, mac_src, mac_des, LIC_INFO_RESPONSE, respDoc, from);
+        sendResponse(config_id, id_src, mac_src, mac_des, LIC_INFO_RESPONSE, respDoc, from);
         Serial.println("✅ Device info sent.");
         break;
     }
@@ -408,7 +408,7 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
     {
         StaticJsonDocument<256> respDoc;
         respDoc["status"] = 255;
-        // sendResponse(config_id, id_src, mac_src, mac_des, opcode | 0x80, respDoc, from);
+        sendResponse(config_id, id_src, mac_src, mac_des, opcode | 0x80, respDoc, from);
         Serial.printf("❌ Unknown opcode: 0x%02X\n", opcode);
         led.setState(CONNECTION_ERROR);
         break;

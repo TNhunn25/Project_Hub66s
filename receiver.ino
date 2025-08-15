@@ -12,6 +12,7 @@
 // Biến toàn cục
 Preferences preferences;
 painlessMesh mesh;
+Scheduler userScheduler;
 LedStatus led(LED_PIN, /*activeHigh=*/false); // nếu LED nối kiểu active-LOW
 Hub66s::LedDisplay ledDisplay; // Khởi tạo đối tượng từ lớp LedDisplay
 
@@ -20,8 +21,8 @@ LicenseInfo globalLicense;
 PayloadStruct message;
 
 // Biến lưu cấu hình
-int config_lid = 115;
-int config_id = 2018; // ID của HUB66S
+int config_lid = 114;
+int config_id = 2002; // ID của HUB66S
 int id_des = 1001;    // ID của LIC66S
 String device_id = "HUB66S_001";
 
@@ -86,10 +87,10 @@ void setup()
 
   Hub66s::WatchDog::begin(10); // ⭐ khởi tạo WDT 10 s (toàn chip reset khi quá hạn)
 
-  // Thiết lập WiFi mode cho ESP-NOW
-  WiFi.mode(WIFI_STA); // Enable Wi-Fi in Station mode for ESP-NOW
-  delay(100);
-  WiFi.setTxPower(WIFI_POWER_2dBm);
+  // // Thiết lập WiFi mode cho ESP-NOW
+  // WiFi.mode(WIFI_STA); // Enable Wi-Fi in Station mode for ESP-NOW
+  // delay(100);
+  // WiFi.setTxPower(WIFI_POWER_7dBm);
   configTime(0, 0, "pool.ntp.org"); // Configure NTP for time synchronization
 
   initMesh(); // Initialize mesh network

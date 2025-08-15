@@ -11,9 +11,10 @@
 #define MESH_SSID "Hub66sMesh"
 #define MESH_PASSWORD "mesh_pass_456"
 #define MESH_PORT 5555
-#define MESH_CHANNEL 2
+#define MESH_CHANNEL 6
 
 extern painlessMesh mesh;
+extern Scheduler userScheduler;
 
 /**
  * Callback khi nhận message từ mesh
@@ -56,8 +57,8 @@ inline void meshReceivedCallback(uint32_t from, String &msg)
     DynamicJsonDocument dataDoc(256);
     dataDoc.set(doc["data"]);
 
-    // 7) Tính node đích (dùng 'from' ở đây)
-    uint32_t destNode = from;
+    // // 7) Tính node đích (dùng 'from' ở đây)
+    // uint32_t destNode = from;
 
     // 8) So sánh chuỗi xác thực auth
     String receivedAuth = doc["auth"].as<String>();
@@ -77,8 +78,17 @@ inline void meshReceivedCallback(uint32_t from, String &msg)
     // Nếu gói tin không dành cho node này thì chuyển tiếp
     if (id_des != config_id && id_des != 0)
     {
-        bool ok = mesh.sendSingle(mac_des, msg);
-        Serial.printf("➡️ Forward to %u %s\n", mac_des, ok ? "OK" : "FAIL");
+        bool ok = false;
+        if (mac_des != 0 && mesh.isConnected(mac_des))
+        {
+            ok = mesh.sendSingle(mac_des, msg);
+            Serial.printf("➡️ Forward to %u %s\n", mac_des, ok ? "OK" : "FAIL");
+        }
+        else
+        {
+            ok = mesh.sendBroadcast(msg);
+            Serial.printf("➡️ Forward broadcast %s\n", ok ? "OK" : "FAIL");
+        }
         return;
     }
 
@@ -100,13 +110,13 @@ inline void meshReceivedCallback(uint32_t from, String &msg)
 inline void initMesh()
 {
     Serial.println("Khởi tạo Mesh...");
-    WiFi.mode(WIFI_AP_STA);
+    WiFi.mode(WIFI_STA);
     delay(100);
-    WiFi.setTxPower(WIFI_POWER_2dBm);
+    WiFi.setTxPower(WIFI_POWER_15dBm);
 
-    mesh.setDebugMsgTypes(ERROR | STARTUP);
-    mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT, WIFI_AP_STA, MESH_CHANNEL);
-    WiFi.softAP(MESH_SSID, MESH_PASSWORD, MESH_CHANNEL, true);
+    mesh.setDebugMsgTypes(ERROR | STARTUP|CONNECTION);
+    mesh.init(MESH_SSID, MESH_PASSWORD, &userScheduler, MESH_PORT, WIFI_STA, MESH_CHANNEL);
+    // WiFi.softAP(MESH_SSID, MESH_PASSWORD, MESH_CHANNEL, true);
 
     mesh.onReceive(&meshReceivedCallback);
     Serial.println("✅ mesh_handler: painlessMesh initialized");
