@@ -187,7 +187,7 @@ void set_license(int id_src, int id_des, int lid,  uint32_t mac_des, time_t crea
     dataDoc["duration"] = duration;
     dataDoc["expired"] = expired;
 
-    String output = createMessage(id_src, id_des, mac_des, mac_src, opcode, dataDoc, now);
+    String output = createMessage(id_src, id_des, mac_src, mac_des, opcode, dataDoc, now);
     if (output.length() > sizeof(message.payload))
     {
         Serial.println("❌ Payload quá lớn!");
@@ -205,9 +205,9 @@ void set_license(int id_src, int id_des, int lid,  uint32_t mac_des, time_t crea
     if (!mesh.isConnected(mac_des))
     {
         Serial.printf("❌ Node 0x%08X chưa kết nối, hủy gửi HUB_SET_LICENSE\n", mac_des);
+        Serial.println("Không set license cho node");
         return;
     }
-
     sendToNode(mac_des, output);
 
     Serial.println("nhay vao thu vien protocol_handler.h cho set_license");

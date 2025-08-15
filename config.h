@@ -36,7 +36,7 @@ uint32_t mac_nhan = 0; // MAC nhận, mặc định là 0 (broadcast)
 #define MESH_SSID "Hub66sMesh"
 #define MESH_PASSWORD "mesh_pass_456"
 #define MESH_PORT 5555
-#define MESH_CHANNEL 2
+#define MESH_CHANNEL 6 //Chuyển từ kênh 2 sang kênh 6 (nên sử dụng 1/6/11 hoặc 13) kênh 2 trùng sóng thiết bị thực tế rất nhiều
 
 #define MASTER_ID 1001 // ID chính của sender
 

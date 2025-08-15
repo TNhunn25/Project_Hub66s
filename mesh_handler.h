@@ -11,6 +11,7 @@
 
 // Đối tượng mesh
 extern painlessMesh mesh;
+extern Scheduler userScheduler;
 
 // Cờ báo mesh đã init xong
 extern bool meshReady;
@@ -58,7 +59,7 @@ inline void initMesh()
     mesh.setDebugMsgTypes(ERROR | STARTUP); // Nếu cần hiện kết nối thì thêm CONNECTION
 
     // init(meshID, password, port, WiFiMode, channel)
-    mesh.init(MESH_SSID, MESH_PASSWORD, MESH_PORT, WIFI_AP_STA, MESH_CHANNEL);
+    mesh.init(MESH_SSID, MESH_PASSWORD, &userScheduler, MESH_PORT, WIFI_AP_STA, MESH_CHANNEL);
 
     // Đăng ký callback
     mesh.onReceive(&meshReceiveCb);

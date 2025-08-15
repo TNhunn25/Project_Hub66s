@@ -13,6 +13,7 @@
 #include "device_storage.h"
 
 // Biến toàn cục từ mesh_handler.h
+Scheduler userScheduler;
 painlessMesh mesh;
 bool meshReady = false; // định nghĩa cờ từ mesh_handler.h
 
@@ -337,7 +338,7 @@ void loop()
         case 1:
             Serial.println("Gửi lệnh LIC_SET_LICENSE");
 
-            set_license(Device_ID, MASTER_ID, datalic.lid, mac_nhan, millis(), datalic.duration, expired, millis());
+            set_license(  MASTER_ID, Device_ID,  datalic.lid, mac_nhan, millis(), datalic.duration, expired, millis());
             break;
         case 4:
             // gửi Broadcast cho toàn bộ hệ thống
