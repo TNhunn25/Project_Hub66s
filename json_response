@@ -1,0 +1,12 @@
+{
+"id": "HUB_ID",
+"mac": "8C:4F:00:16:59:F8",
+"opcode": 130,
+"data":{
+        "md5_result": "pass",
+        "status": 0,
+        "lid": "123"
+        },
+"time": 3775,
+"auth": "d810d7f41c4adb27be326353097c800b"
+}
