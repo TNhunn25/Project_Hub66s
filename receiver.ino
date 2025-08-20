@@ -21,8 +21,8 @@ LicenseInfo globalLicense;
 PayloadStruct message;
 
 // Biến lưu cấu hình
-int config_lid = 114;
-int config_id = 2002; // ID của HUB66S
+int config_lid = 115;
+int config_id = 2008; // ID của HUB66S
 int id_des = 1001;    // ID của LIC66S
 String device_id = "HUB66S_001";
 

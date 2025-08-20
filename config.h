@@ -10,7 +10,7 @@
 
 // ==== Chân LED hiển thị trạng thái ====
 #define LED_PIN 46   // Chân GPIO kết nối LED
-
+ 
 // Định nghĩa các opcode
 #define LIC_TIME_GET 0x01
 #define LIC_SET_LICENSE 0x02

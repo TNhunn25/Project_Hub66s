@@ -113,9 +113,13 @@ inline void initMesh()
     WiFi.mode(WIFI_STA);
     delay(100);
     WiFi.setTxPower(WIFI_POWER_15dBm);
-
-    mesh.setDebugMsgTypes(ERROR | STARTUP|CONNECTION);
+    // Tắt chế độ tiết kiệm điện để root không sleep
+    WiFi.setSleep(false);
+    mesh.setDebugMsgTypes(ERROR | STARTUP);
     mesh.init(MESH_SSID, MESH_PASSWORD, &userScheduler, MESH_PORT, WIFI_STA, MESH_CHANNEL);
+    // mesh.setRoot(true);          // ✅ đánh dấu node này là ROOT
+    // Cố định root để hạn chế việc node liên tục scan và nhảy mạng
+    mesh.setContainsRoot(true);
     // WiFi.softAP(MESH_SSID, MESH_PASSWORD, MESH_CHANNEL, true);
 
     mesh.onReceive(&meshReceivedCallback);

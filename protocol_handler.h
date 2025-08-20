@@ -135,7 +135,11 @@ void loadLicenseData()
 // ===== CALLBACK KHI NHẬN TỪ MESH =====
 void onMeshReceive(uint32_t from, String &msg)
 {
-    Serial.printf("[mesh] Received from %u: %s\n", from, msg.c_str());
+    // Serial.printf("[mesh] Received from %u: %s\n", from, msg.c_str());
+
+    Serial.printf("📥 [Leader] App received from %u: %s\n", from, msg.c_str());  //Leader
+
+    Serial.printf("📥 [Node %u] App received from %u: %s\n", mesh.getNodeId(), from, msg.c_str());  //Node
 
     // Lưu nodeId và data để xử lý ở loop nếu muốn (hoặc gọi luôn xử lý)
     size_t len = msg.length();
@@ -228,7 +232,7 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
                 respDoc["id"] = config_id;
                 // respDoc["nod"] = globalLicense.nod;
                 respDoc["status"] = 0;
-                sendResponse(config_id, id_src,mac_des, mac_src, LIC_SET_LICENSE | 0x80, respDoc, from);
+                sendResponse(config_id, id_src, mac_des, mac_src, LIC_SET_LICENSE | 0x80, respDoc, from);
                 Serial.println("✅ Cập nhật giấy phép thành công: LID = " + String(lid) + ", ID = " + String(config_id));
                 led.setState(FLASH_TWICE);
                 while (led.isBusy())
