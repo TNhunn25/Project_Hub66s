@@ -49,12 +49,12 @@ bool ledState = LOW;
 
 // Biến thời gian license
 time_t start_time = 0;
-const int duration = 60; // 60 phút
-time_t now = 0;
+const uint32_t duration = 60; // 60 phút
+uint32_t now = 0;
 
 // Biến expired
 bool expired_flag = false;          // Biến logic kiểm soát trạng thái còn hạn
-int expired = expired_flag ? 1 : 0; // 1 là hết hạn, 0 là còn hạn
+uint8_t expired = expired_flag ? 1 : 0; // 1 là hết hạn, 0 là còn hạn
 // lastTargetNode = from;
 uint32_t lastTargetNode = 0;
 
@@ -79,8 +79,8 @@ bool isMacExist(uint32_t nodeId)
     return false;
 }
 
-// Thêm MAC vào danh sách
-void addNodeToList(int id, int lid, uint32_t nodeId, unsigned long time_)
+// Thêm MAC vào danh sách  
+void addNodeToList(int id, int lid, uint32_t nodeId, uint32_t time_)  //unsigned long đổi uint32_t
 {
     if (Device.deviceCount < MAX_DEVICES && !isMacExist(nodeId))
     {
@@ -191,7 +191,7 @@ void handleScanResponse(uint32_t nodeId, int device_id, int local_id)
 {
     if (!isMacExist(nodeId))
     {
-        addNodeToList(device_id, local_id, nodeId, millis());
+        addNodeToList(device_id, local_id, nodeId, (uint32_t)millis());  //thêm uint32_t
     }
     else
     {
@@ -395,8 +395,11 @@ void loop()
             lv_obj_del(ui_spinner1);
             ui_spinner1 = NULL;
         }
-        lv_obj_clean(ui_Groupdevice);
-        lv_obj_invalidate(ui_Groupdevice);
+        if(ui_Groupdevice)
+        {
+            lv_obj_clean(ui_Groupdevice);
+            lv_obj_invalidate(ui_Groupdevice);
+        }
 
         // lv_obj_invalidate(lv_scr_act());
         if ((next_page * maxLinesPerPage) >= Device.deviceCount)
@@ -467,7 +470,15 @@ void loop()
             snprintf(idStr, sizeof(idStr), "%d", Device.DeviceID[i]);
             snprintf(lidStr, sizeof(lidStr), "%d", Device.LocalID[i]);
             snprintf(timeStr, sizeof(timeStr), "%lu", Device.timeLIC[i]);  //chuyển %d = %lu
-            snprintf(nodStr, sizeof(nodStr), "%d", i + 1);
+            int count = 0;
+            for (int j = 0; j < Device.deviceCount; j++)
+            {
+                if (Device.LocalID[j] == Device.LocalID[i])
+                {
+                    count++;
+                }
+            }
+            snprintf(nodStr, sizeof(nodStr), "%d", count);
             lv_obj_t *ui_DeviceINFO = ui_DeviceINFO1_create(ui_Groupdevice, idStr, lidStr, nodStr, macStr, timeStr);
         }
         enable_print_ui = false;

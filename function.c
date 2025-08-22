@@ -34,7 +34,7 @@ void get_lic_ui()
     }
     if (ui_TextArea6 != NULL && ui_TextArea7 != NULL)
     {
-        long temp = atol(lv_textarea_get_text(ui_TextArea6)) * 60 + atol(lv_textarea_get_text(ui_TextArea7));
+        uint32_t temp = (uint32_t) atol(lv_textarea_get_text(ui_TextArea6)) * 60 + (uint32_t) atol(lv_textarea_get_text(ui_TextArea7));  //thêm 2 biến uint32_t
         datalic.duration = temp;
         datalic.expired = true;
     }

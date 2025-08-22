@@ -7,6 +7,47 @@
 #include "protocol_handler.h" // cho createMessage()
 #include "mesh_handler.h"     // cho meshBroadcastJson()
 
+
+// xử lý các lệnh nhập tay từ Serial
+static void handleSerialCommand(const String &cmd)
+{
+  if (cmd.equalsIgnoreCase("scan"))
+  {
+    button = 5;
+    next_page = 0;
+  }
+  else if (cmd.equalsIgnoreCase("rescan"))
+  {
+    button = 4;
+  }
+  else if (cmd.equalsIgnoreCase("next"))
+  {
+    next_page++;
+  }
+  else if (cmd.startsWith("set"))
+  {
+    int did, lid, hour, minute;
+    if (sscanf(cmd.c_str(), "set %d %d %d %d", &did, &lid, &hour, &minute) == 4)
+    {
+      Device_ID = did;
+      datalic.lid = lid;
+      datalic.duration = hour * 60 + minute;
+      datalic.expired = true;
+      button = 1;
+      Serial.println("Đã cấu hình license");
+    }
+    else
+    {
+      Serial.println("Sai định dạng. set <device_id> <local_id> <hour> <minute>");
+    }
+  }
+  else
+  {
+    Serial.println("Lệnh không hợp lệ");
+  }
+}
+
+
 // ==== Nhận cấu hình id và lid từ Serial Monitor ====
 // inline void rec_PC()
 // {
@@ -63,82 +104,94 @@ void serial_pc()
     {
       jsonBuffer[bufferIndex] = '\0'; // Kết thúc chuỗi
 
-      Serial.println("Đã nhận JSON:");
-      Serial.println(jsonBuffer);
-
-      // Parse JSON
-      StaticJsonDocument<512> doc;
-      DeserializationError error = deserializeJson(doc, jsonBuffer);
-
-      if (error)
+      String input = String(jsonBuffer);
+      input.trim();
+      if (input.length() > 0)
       {
-        Serial.print("Lỗi JSON: ");
-        Serial.println(error.f_str());
-      }
-      else
-      {
-        // Lấy trường ngoài
-        const char *id = doc["id"];
-        const char *mac_des = doc["mac"];
-        int opcode = doc["opcode"];
-        long time = doc["time"];
-        const char *auth = doc["auth"];
-
-        // Lấy object data bên trong
-        JsonObject data = doc["data"];
-        long lid = data["lid"];
-        long created = data["created"];
-        long expired = data["expired"];
-        long duration = data["duration"];
-
-        // In dữ liệu nhận được
-        Serial.print("ID: ");
-        Serial.println(id);
-        Serial.print("MAC: ");
-        Serial.println(mac_des);
-        Serial.print("Opcode: ");
-        Serial.println(opcode);
-        Serial.print("Time: ");
-        Serial.println(time);
-        Serial.print("Auth: ");
-        Serial.println(auth);
-        Serial.println("== Data Object ==");
-        Serial.print("LID: ");
-        Serial.println(lid);
-        Serial.print("Created: ");
-        Serial.println(created);
-        Serial.print("Expired: ");
-        Serial.println(expired);
-        Serial.print("Duration: ");
-        Serial.println(duration);
-
-        // So sánh opcode
-        Serial.print("Xử lý opcode: ");
-        switch (opcode)
+        if (input[0] == '{')
         {
-        case 1: // LIC_TIME_GET
-          Serial.println("LIC_TIME_GET (Yêu cầu PC gửi gói tin LIC_TIME)");
-          break;
-        case 2: // HUB_SET_LICENSE
-          Serial.println("HUB_SET_LICENSE (Tạo bản tin LICENSE)");
+          Serial.println("Đã nhận JSON:");
+          Serial.println(input);
 
-          break;
-        case 3: // HUB_GET_LICENSE
-          // getlicense(config_lid,WiFi.macAddress(),now);
-          Serial.println("HUB_GET_LICENSE (Đọc trạng thái license của HUB66S)");
-          break;
-        case 4: // LIC_LICENSE_DELETE
-          Serial.println("LIC_LICENSE_DELETE (Xóa bản tin đã gửi)");
-          break;
-        case 5: // LIC_LICENSE_DELETE_ALL
-          Serial.println("LIC_LICENSE_DELETE_ALL (Xóa toàn bộ các bản tin)");
-          break;
-        case 6: // LIC_INFO
-          Serial.println("LIC_INFO (Cập nhật thông tin LIC66S)");
-          break;
-        default:
-          Serial.println("Không xác định opcode!");
-          break;
+          // Parse JSON
+          StaticJsonDocument<512> doc;
+          DeserializationError error = deserializeJson(doc, input);
+
+          if (error)
+          {
+            Serial.print("Lỗi JSON: ");
+            Serial.println(error.f_str());
+          }
+          else
+          {
+            // Lấy trường ngoài
+            const char *id = doc["id"];
+            const char *mac_des = doc["mac"];
+            int opcode = doc["opcode"];
+            long time = doc["time"];
+            const char *auth = doc["auth"];
+
+            // Lấy object data bên trong
+            JsonObject data = doc["data"];
+            uint32_t lid = data["lid"];
+            uint32_t created = data["created"];
+            uint8_t expired = data["expired"];
+            uint32_t duration = data["duration"];
+
+            // In dữ liệu nhận được
+            Serial.print("ID: ");
+            Serial.println(id);
+            Serial.print("MAC: ");
+            Serial.println(mac_des);
+            Serial.print("Opcode: ");
+            Serial.println(opcode);
+            Serial.print("Time: ");
+            Serial.println(time);
+            Serial.print("Auth: ");
+            Serial.println(auth);
+            Serial.println("== Data Object ==");
+            Serial.print("LID: ");
+            Serial.println(lid);
+            Serial.print("Created: ");
+            Serial.println((unsigned long)created);
+            Serial.print("Expired: ");
+            Serial.println((unsigned long)expired);
+            Serial.print("Duration: ");
+            Serial.println((unsigned long)duration);
+
+            // So sánh opcode
+            Serial.print("Xử lý opcode: ");
+            switch (opcode)
+            {
+            case 1: // LIC_TIME_GET
+              Serial.println("LIC_TIME_GET (Yêu cầu PC gửi gói tin LIC_TIME)");
+              break;
+            case 2: // HUB_SET_LICENSE
+              Serial.println("HUB_SET_LICENSE (Tạo bản tin LICENSE)");
+
+              break;
+            case 3: // HUB_GET_LICENSE
+              // getlicense(config_lid,WiFi.macAddress(),now);
+              Serial.println("HUB_GET_LICENSE (Đọc trạng thái license của HUB66S)");
+              break;
+            case 4: // LIC_LICENSE_DELETE
+              Serial.println("LIC_LICENSE_DELETE (Xóa bản tin đã gửi)");
+              break;
+            case 5: // LIC_LICENSE_DELETE_ALL
+              Serial.println("LIC_LICENSE_DELETE_ALL (Xóa toàn bộ các bản tin)");
+              break;
+            case 6: // LIC_INFO
+              Serial.println("LIC_INFO (Cập nhật thông tin LIC66S)");
+              break;
+            default:
+              Serial.println("Không xác định opcode!");
+              break;
+            }
+          }
+        }
+        else
+        {
+          handleSerialCommand(input);
         }
       }
 
@@ -147,5 +200,6 @@ void serial_pc()
     }
   }
 }
+
 
 #endif // SERIAL_H

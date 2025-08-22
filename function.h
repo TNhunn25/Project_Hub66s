@@ -6,9 +6,9 @@
 
 typedef struct {
     long lid;
-    long created;
-    long expired;
-    long duration;
+    uint32_t created;
+    uint32_t expired;
+    uint32_t duration;
 } Licence;
 extern Licence datalic;
 
@@ -18,12 +18,12 @@ typedef struct {
     int DeviceID[MAX_DEVICES];
     int LocalID[MAX_DEVICES];
     // int LocalCount[MAX_DEVICES];  // nguyên nhân reset
-    unsigned long timeLIC[MAX_DEVICES];
+    uint32_t timeLIC[MAX_DEVICES];
     int deviceCount;
 } device_info;
 extern device_info Device;
 
-void addNodeToList(int id_src, int lid, uint32_t nodeId, unsigned long timestamp);
+void addNodeToList(int id_src, int lid, uint32_t nodeId, uint32_t timestamp);
 void printDeviceList();
 void handleScanResponse(uint32_t nodeId, int device_id, int local_id);
 
@@ -33,6 +33,8 @@ extern uint8_t button;
 extern lv_timer_t * timer;
 extern char messger[128];
 extern bool enable_print_ui_set;
+extern int next_page;
+
 // Khai báo các hàm
 void update_RTC(char* Hour, char* Minute, char* Second);
 void update_config(char* localID, char* deviceID, char* nod);

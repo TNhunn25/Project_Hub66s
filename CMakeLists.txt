@@ -20,10 +20,10 @@ SET(SOURCES ui_comp_deviceinfo1.c
     ui_img_clock_png.c
     ui_img_save_png.c
     ui_img_icn_x_png.c
-    fonts/ui_font_Big.c
-    fonts/ui_font_Medium.c
-    fonts/ui_font_Number.c
-    fonts/ui_font_Small.c
-    fonts/ui_font_timesnewroman.c)
+    ui_font_Big.c
+    ui_font_Medium.c
+    ui_font_Number.c
+    ui_font_Small.c
+    ui_font_timesnewroman.c)
 
 add_library(ui ${SOURCES})

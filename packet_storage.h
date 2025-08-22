@@ -10,7 +10,7 @@ struct LicenseRecord
     int localID;
     int numberDevice;
     uint32_t mac;
-    unsigned long time;
+    uint32_t time;
 };
 
 static Preferences packetPrefs;

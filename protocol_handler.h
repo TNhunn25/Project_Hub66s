@@ -116,13 +116,12 @@ void processReceivedData(StaticJsonDocument<512> message, uint8_t opcode, const 
     case LIC_GET_LICENSE | 0x80:
     {
         Serial.println("Đã nhận phản hồi HUB_GET_LICENSE:");
-
         JsonObject data = message["data"];
         int lid = data["lid"];
-        unsigned long time_temp = data["remain"];
-
+        uint32_t time_temp = data["remain"];
+        
         addNodeToList(config_id, lid, nodeId, time_temp); // millis()
-
+        
         // addNodeToList(id_src, lid, nodeId, time_temp);
         enable_print_ui = true;
         // printDeviceList();
@@ -167,15 +166,15 @@ void onMeshReceive(uint32_t from, String &msg)
 
     Serial.printf("\n[mesh RX] From nodeId = 0x%08X (Node ID = %d)  timestamp = %lu\n", from, id_src, timestamp);
     Serial.printf("Opcode: 0x%02X   Status: %d\n", opcode, status);
-    serializeJsonPretty(doc, Serial);
-    Serial.println();
+    // serializeJsonPretty(doc, Serial);
+    // Serial.println();
 
     // Gọi xử lý phản hồi (sẽ tự ghi flash nếu cần)
     processReceivedData(doc, opcode, payload, from);
 }
 
 // // --- Gửi HUB_SET_LICENSE qua Mesh ---
-void set_license(int id_src, int id_des, int lid,  uint32_t mac_des, time_t created, int duration, int expired, time_t now)
+void set_license(int id_src, int id_des, int lid,  uint32_t mac_des, time_t created, uint32_t duration, uint8_t expired, uint32_t now)
 {
     uint32_t mac_src = mesh.getNodeId(); // MAC nguồn
     int opcode = LIC_SET_LICENSE;
@@ -210,9 +209,8 @@ void set_license(int id_src, int id_des, int lid,  uint32_t mac_des, time_t crea
     }
     sendToNode(mac_des, output);
 
-    Serial.println("nhay vao thu vien protocol_handler.h cho set_license");
-    Serial.println("\n📤 Gửi HUB_SET_LICENSE:");
-    Serial.println(output);
+    // Serial.println("\n📤 Gửi HUB_SET_LICENSE:");
+    // Serial.println(output);
 }
 
 void getlicense(int id_des, int lid, uint32_t mac_des, unsigned long now)
@@ -246,9 +244,9 @@ void getlicense(int id_des, int lid, uint32_t mac_des, unsigned long now)
     {
         sendToNode(mac_des, output);
     }
-    Serial.println("nhay vao thu vien protocol_handler.h cho getlicense");
+
     Serial.println("📤 Gửi HUB_GET_LICENSE:");
-    Serial.println(output);
+    // Serial.println(output);
 }
 
 // --- Gửi HUB_GET_LICENSE qua Mesh ---
