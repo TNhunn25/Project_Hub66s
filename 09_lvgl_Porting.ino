@@ -375,16 +375,6 @@ void loop()
     {
         lvgl_port_lock(-1);
 
-        // if(millis()-timer_out>5000){
-        // if (ui_spinner1 != NULL) {
-        // lv_anim_del(ui_spinner1, NULL);
-        // lv_obj_del(ui_spinner1); // Xóa đối tượng spinner
-        // ui_spinner1 = NULL; // Đặt con trỏ về NULL để tránh tham chiếu sai
-        // }
-
-        // lv_obj_clean(ui_Groupdevice);
-        // lv_obj_invalidate(ui_Groupdevice);
-
         if (timer != NULL)
         {
             lv_timer_del(timer);
@@ -395,11 +385,11 @@ void loop()
             lv_obj_del(ui_spinner1);
             ui_spinner1 = NULL;
         }
-        if(ui_Groupdevice)
-        {
-            lv_obj_clean(ui_Groupdevice);
-            lv_obj_invalidate(ui_Groupdevice);
-        }
+        // if(ui_Groupdevice)
+        // {
+        //     lv_obj_clean(ui_Groupdevice);
+        //     lv_obj_invalidate(ui_Groupdevice);
+        // }
 
         // lv_obj_invalidate(lv_scr_act());
         if ((next_page * maxLinesPerPage) >= Device.deviceCount)
@@ -407,35 +397,6 @@ void loop()
             next_page = 0; // Quay về trang đầu
         }
         old_page = next_page;
-        // char buf[64];
-        // snprintf(buf, sizeof(buf), "LIST DEVICE: %2d - Page %2d", Device.deviceCount, next_page + 1);
-        // Serial.printf("BUF= %s\n", buf);
-        // lv_label_set_text(ui_Label7, buf);
-        // int startIdx = next_page * maxLinesPerPage;
-        // int endIdx = startIdx + maxLinesPerPage;
-
-        // if (endIdx > Device.deviceCount)
-        // {
-        //     endIdx = Device.deviceCount;
-        // }
-        // Serial.printf("%d %d %d \n ", startIdx, endIdx, next_page);
-
-        // for (int i = startIdx; i < endIdx; i++)
-        // {
-        //     char macStr[100];
-        //     char idStr[100];
-        //     char lidStr[100];
-        //     char timeStr[100];
-
-        //     Serial.printf("Node %d: 0x%08X\n", i + 1, Device.NodeID[i]);
-        //     snprintf(macStr, sizeof(macStr), "0x%08X", Device.NodeID[i]);
-        //     snprintf(idStr, sizeof(idStr), "%d", Device.DeviceID[i]);
-        //     snprintf(lidStr, sizeof(lidStr), "%d", Device.LocalID[i]);
-        //     snprintf(timeStr, sizeof(timeStr), "%d", Device.timeLIC[i]);
-
-        //     lv_obj_t *ui_DeviceINFO = ui_DeviceINFO1_create(ui_Groupdevice, idStr, lidStr, "****", macStr, timeStr);
-        // }
-        // enable_print_ui = false;
 
         int startIdx = next_page * maxLinesPerPage;
         int endIdx = startIdx + maxLinesPerPage;

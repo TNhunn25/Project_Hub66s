@@ -17,7 +17,6 @@ typedef struct {
     uint32_t NodeID[MAX_DEVICES]; // Lưu nodeId của từng thiết bị
     int DeviceID[MAX_DEVICES];
     int LocalID[MAX_DEVICES];
-    // int LocalCount[MAX_DEVICES];  // nguyên nhân reset
     uint32_t timeLIC[MAX_DEVICES];
     int deviceCount;
 } device_info;

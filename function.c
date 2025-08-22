@@ -34,7 +34,7 @@ void get_lic_ui()
     }
     if (ui_TextArea6 != NULL && ui_TextArea7 != NULL)
     {
-        uint32_t temp = (uint32_t) atol(lv_textarea_get_text(ui_TextArea6)) * 60 + (uint32_t) atol(lv_textarea_get_text(ui_TextArea7));  //thêm 2 biến uint32_t
+        uint32_t temp = (uint32_t)atol(lv_textarea_get_text(ui_TextArea6)) * 60 + (uint32_t)atol(lv_textarea_get_text(ui_TextArea7)); // thêm 2 biến uint32_t
         datalic.duration = temp;
         datalic.expired = true;
     }
@@ -68,9 +68,17 @@ void timer_cb(lv_timer_t *timer_)
     }
     lv_obj_t *spinner = (lv_obj_t *)timer_->user_data;
 
-    if(spinner != NULL && lv_obj_is_valid(spinner))
+    if (spinner != NULL && lv_obj_is_valid(spinner))
     {
         lv_obj_del(spinner);
+        if (spinner == ui_spinner)
+        {
+            ui_spinner = NULL;
+        }
+        else if (spinner == ui_spinner1)
+        {
+            ui_spinner1 = NULL;
+        }
     }
 
     // lv_obj_del(spinner);
