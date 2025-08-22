@@ -119,9 +119,9 @@ void processReceivedData(StaticJsonDocument<512> message, uint8_t opcode, const 
         JsonObject data = message["data"];
         int lid = data["lid"];
         uint32_t time_temp = data["remain"];
-        
+
         addNodeToList(config_id, lid, nodeId, time_temp); // millis()
-        
+
         // addNodeToList(id_src, lid, nodeId, time_temp);
         enable_print_ui = true;
         // printDeviceList();
@@ -174,8 +174,52 @@ void onMeshReceive(uint32_t from, String &msg)
 }
 
 // // --- Gửi HUB_SET_LICENSE qua Mesh ---
-void set_license(int id_src, int id_des, int lid,  uint32_t mac_des, time_t created, uint32_t duration, uint8_t expired, uint32_t now)
+void set_license(int id_src, int id_des, int lid, uint32_t mac_des,
+                 time_t created, uint32_t duration, uint8_t expired,
+                 uint32_t now)
 {
+    // Nếu không chỉ định MAC đích
+    if (mac_des == 0)
+    {
+        bool found = false;
+
+        // Nếu chỉ định ID đích, tìm node có ID đó
+        if (id_des != 0)
+        {
+            for (int i = 0; i < Device.deviceCount; i++)
+            {
+                if (Device.DeviceID[i] == id_des)
+                {
+                    found = true;
+                    set_license(id_src, id_des, lid, Device.NodeID[i], created,
+                                duration, expired, now);
+                    break;
+                }
+            }
+            if (!found)
+            {
+                Serial.println("❌ Không tìm thấy node với Device ID tương ứng");
+            }
+        }
+        else // Không chỉ định ID đích, gửi tới tất cả node cùng LID
+        {
+            for (int i = 0; i < Device.deviceCount; i++)
+            {
+                if (Device.LocalID[i] == lid)
+                {
+                    found = true;
+                    set_license(id_src, Device.DeviceID[i], lid, Device.NodeID[i],
+                                created, duration, expired, now);
+                }
+            }
+            if (!found)
+            {
+                Serial.println("❌ Không tìm thấy node nào có cùng LID");
+            }
+        }
+        return;
+    }
+
     uint32_t mac_src = mesh.getNodeId(); // MAC nguồn
     int opcode = LIC_SET_LICENSE;
     // int id_des = config_id; // ID của LIC66S

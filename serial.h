@@ -19,6 +19,7 @@ static void handleSerialCommand(const String &cmd)
   else if (cmd.equalsIgnoreCase("rescan"))
   {
     button = 4;
+    next_page = 0;
   }
   else if (cmd.equalsIgnoreCase("next"))
   {

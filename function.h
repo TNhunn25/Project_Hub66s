@@ -24,7 +24,7 @@ extern device_info Device;
 
 void addNodeToList(int id_src, int lid, uint32_t nodeId, uint32_t timestamp);
 void printDeviceList();
-void handleScanResponse(uint32_t nodeId, int device_id, int local_id);
+void handleScanResponse(uint32_t nodeId, int device_id, int local_id, uint32_t time_);
 
 extern int Device_ID;
 extern bool enable_print_ui;

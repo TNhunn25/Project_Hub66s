@@ -74,6 +74,7 @@ void Rescan_Licene(lv_event_t *e)
 		ui_spinner1 = ui_Spinner_create(ui_Groupdevice);
 	}
 
+	next_page = 0;
 	button = 4;
 }
 
