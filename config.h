@@ -54,8 +54,8 @@ typedef struct
     String license; // Nội dung license
     time_t created;
     time_t expired;
-    int duration;
-    int remain;
+    uint32_t duration;
+    uint32_t remain;
     bool expired_flag; // Đã hết hạn chưa
     uint32_t nod;      // tổng số thiết bị trong nhóm LID
     String deviceName; // Tên thiết bị
@@ -84,11 +84,11 @@ extern bool config_processed;
 extern char jsonBuffer[BUFFER_SIZE];
 extern int bufferIndex;
 extern time_t start_time;  
-extern const int duration;
+extern const uint32_t duration;
 extern bool expired_flag;
-extern int expired;
-extern unsigned long now;
-extern unsigned long lastSendTime;
+extern uint8_t expired;
+extern uint32_t now;
+extern uint32_t lastSendTime;
 extern String device_id;
 extern uint32_t nod; // Số lượng thiết bị, mặc định là 10
 

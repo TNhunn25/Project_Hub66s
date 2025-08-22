@@ -12,7 +12,7 @@
 
 extern painlessMesh mesh; // Mesh object toàn cục
 extern bool dang_gui;
-extern unsigned long lastSendTime;
+extern uint32_t lastSendTime;
 extern volatile bool hasNewPacket;
 extern int lastPacketLen;
 extern uint32_t lastPacketNodeId;
@@ -20,12 +20,12 @@ extern uint8_t lastPacketData[250];
 extern uint32_t lastPacketNodeId; // Lưu nodeId của gói vừa nhận (thay cho MAC)
 extern PayloadStruct message;
 extern Preferences preferences;
-extern unsigned long runtime;
+extern uint32_t runtime;
 extern uint32_t nod;
 
 // ===== GỬI GÓI TIN QUA MESH =====
 String createMessage(int id_src, int id_des, uint32_t mac_src, uint32_t mac_des, uint8_t opcode,
-                     const JsonVariant &data, unsigned long timestamp = 0)
+                     const JsonVariant &data, uint32_t timestamp = 0)
 {
     if (timestamp == 0)
         timestamp = millis() / 1000; // mô phỏng thời gian Unix
@@ -83,12 +83,12 @@ void saveLicenseData(bool verbose = true)
     preferences.begin("license", false);
     preferences.putInt("lid", globalLicense.lid);
     preferences.putULong("created", globalLicense.created);
-    preferences.putInt("duration", globalLicense.duration);
-    preferences.putInt("remain", globalLicense.remain);
+    preferences.putUInt("duration", globalLicense.duration);
+    preferences.putUInt("remain", globalLicense.remain);
     preferences.putBool("expired_flag", globalLicense.expired_flag);
-    preferences.putULong("runtime", runtime);
+    preferences.putUInt("runtime", runtime);
     preferences.putUInt("nod", globalLicense.nod);
-    preferences.putULong("last_save", millis() / 1000);
+    preferences.putULong("last_save", millis() / 1000); //có thể dùng putUInt
     preferences.end();
     if (verbose)
     {
@@ -119,7 +119,7 @@ void loadLicenseData()
     globalLicense.duration = preferences.getInt("duration", 0);
     globalLicense.remain = preferences.getInt("remain", 0);
     globalLicense.expired_flag = preferences.getBool("expired_flag", false);
-    runtime = preferences.getULong("runtime", 0);
+    runtime = preferences.getUInt("runtime", 0);
     globalLicense.nod = preferences.getUInt("nod", mesh.getNodeList().size() + 1);
     ::nod = globalLicense.nod;
     preferences.end();
@@ -195,8 +195,8 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
         int lid = licData["lid"].as<int>();
         int id = licData["id"].as<int>();
         time_t created = licData["created"].as<long>();
-        int duration = licData["duration"].as<int>();
-        int expired = licData["expired"].as<int>();
+        uint32_t duration = licData["duration"].as<int>();
+        uint8_t expired = licData["expired"].as<int>();  //int thành uint8_t
         int nod = licData["nod"].as<int>();
 
         StaticJsonDocument<256> respDoc;
@@ -291,7 +291,7 @@ void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_
             }
             else
             {
-                Serial.printf("🔓 License còn %lu phút\n", globalLicense.remain);
+                Serial.printf("🔓 License còn %lu phút\n", (unsigned long)globalLicense.remain); //thêm unsigned long
                 led.setState(NORMAL_STATUS);
             }
         }

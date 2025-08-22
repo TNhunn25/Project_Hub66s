@@ -40,8 +40,8 @@ void recPC()
         String config_id = doc["id_src"];
         String id_des = doc["id_des"];
         time_t created = doc["created"].as<long>();
-        int duration = doc["duration"].as<int>();
-        int expired = doc["expired"].as<int>();
+        uint32_t duration = doc["duration"].as<int>();
+        uint8_t expired = doc["expired"].as<int>();
         time_t now = doc["time"].as<long>();
 
         config_processed = true;

@@ -22,7 +22,7 @@ PayloadStruct message;
 
 // Biến lưu cấu hình
 int config_lid = 115;
-int config_id = 2008; // ID của HUB66S
+int config_id = 2009; // ID của HUB66S
 int id_des = 1001;    // ID của LIC66S
 String device_id = "HUB66S_001";
 
@@ -30,14 +30,14 @@ bool config_processed = false;
 char jsonBuffer[BUFFER_SIZE];
 int bufferIndex = 0;
 bool expired_flag = false;
-int expired = 0; // Biến lưu trạng thái hết hạn
-unsigned long now;
+uint8_t expired = 0; // Biến lưu trạng thái hết hạn  //int chuyển sang uint8_t
+uint32_t now;
 time_t start_time = 0;
-const int duration = 60;
-unsigned long lastSendTime = 0;
+const uint32_t duration = 60;  //const uint32_t giá trị cố định sau khi gán lần đầu
+uint32_t lastSendTime = 0;
 uint32_t lastPacketNodeId = 0; // Chỉ ở một chỗ duy nhất!
 
-unsigned long runtime = 0;
+uint32_t runtime = 0;
 uint32_t nod = 0; // số lượng thiết bị trong mesh, sẽ được cập nhật ở setup()
 
 bool dang_gui = false; // cờ đang gửi
@@ -60,7 +60,7 @@ void xu_ly_dang_gui()
   if (!dang_gui)
     return;
 
-  unsigned long now = millis();
+  uint32_t now = millis();
   // // Chưa đủ 1s kể từ lần gửi trước thì bỏ qua
   if (now - lastTime < 1000)
     return;
@@ -122,7 +122,7 @@ void loop()
   delay(10); // Giảm tải CPU
 
   // Cập nhật license, remain, expired, NVS mỗi 1 phút
-  unsigned long nowMillis = millis();
+  uint32_t nowMillis = millis();
   if (nowMillis - lastSendTime > 60000) 
   {
     lastSendTime = nowMillis;
@@ -132,7 +132,7 @@ void loop()
     {
       runtime++; // tăng thời gian chạy từng phút
       preferences.begin("license", false);
-      preferences.putULong("runtime", runtime);
+      preferences.putUInt("runtime", runtime);
       preferences.end();
       globalLicense.remain = globalLicense.duration > runtime ? globalLicense.duration - runtime : 0; // Ngăn remain âm
       // Kiểm tra license hết hạn
