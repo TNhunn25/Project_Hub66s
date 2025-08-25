@@ -33,6 +33,7 @@ extern lv_timer_t * timer;
 extern char messger[128];
 extern bool enable_print_ui_set;
 extern int next_page;
+extern uint32_t mac_nhan;
 
 // Khai báo các hàm
 void update_RTC(char* Hour, char* Minute, char* Second);

@@ -134,6 +134,19 @@ int findLIDIndex(int lid)
     return -1;
 }
 
+// Tìm chỉ số của DeviceID trong danh sách, trả về -1 nếu chưa tồn tại
+int findDeviceIDIndex(int id)
+{
+    for (int i = 0; i < Device.deviceCount; i++)
+    {
+        if (Device.DeviceID[i] == id)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 // // Thêm thiết bị vào danh sách, gộp các node cùng LID
 // void addNodeToList(int id, int lid, uint32_t nodeId, unsigned long time_)
 // {
@@ -353,24 +366,29 @@ void loop()
 
             set_license(MASTER_ID, Device_ID, datalic.lid, 0, millis(), datalic.duration, expired, millis());
             break;
+        case 2:
+            Serial.println("Gửi lệnh CONFIG_DEVICE");
+            config_device(MASTER_ID, Device_ID, datalic.lid, 0, millis());
+            break;
         case 4:
             // gửi Broadcast cho toàn bộ hệ thống
             Serial.println("Gửi lệnh LIC_GET_LICENSE");
             // Không xóa danh sách thiết bị khi rescan,
             // chỉ phát yêu cầu để cập nhật thông tin mới
             // getlicense(Device_ID, datalic.lid, mac_nhan, millis());
-            getlicense(0, datalic.lid, 0, millis());
+            getlicense(Device_ID, datalic.lid, 0, millis());
             // enable_print_ui=true;
             // timer_out=millis();
             break;
         case 5:
             memset(&Device, 0, sizeof(Device));
             // getlicense(Device_ID, datalic.lid, mac_nhan, millis());
-            getlicense(0, datalic.lid, 0, millis());
+            getlicense(Device_ID, datalic.lid, 0, millis());
             // enable_print_ui=true;
             // timer_out=millis();
             break;
         default:
+
             break;
         }
         button = 0;
@@ -435,6 +453,8 @@ void loop()
         for (int i = startIdx; i < endIdx; i++)
         {
             if (i < 0 || i >= MAX_DEVICES)
+                continue;
+            if (Device_ID != 0 && Device.DeviceID[i] != Device_ID)
                 continue;
             char macStr[18], idStr[18], lidStr[18], timeStr[18], nodStr[8];
             snprintf(macStr, sizeof(macStr), "0x%08X", Device.NodeID[i]);

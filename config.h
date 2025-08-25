@@ -50,6 +50,7 @@ uint32_t mac_nhan = 0; // MAC nhận, mặc định là 0 (broadcast)
 #define LIC_LICENSE_DELETE_ALL 0x05
 #define LIC_INFO 0x06
 #define LIC_INFO_RESPONSE 0x80
+#define LIC_CONFIG_DEVICE 0x07
 
 // ==== JSON buffer sizes ====
 #define BUFFER_SIZE 512 // buffer để đọc JSON từ PC

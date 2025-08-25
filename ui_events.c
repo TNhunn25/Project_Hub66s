@@ -108,4 +108,24 @@ void Setlicene(lv_event_t *e)
 void configdevice(lv_event_t *e)
 {
 	// Your code here
+	// Lấy device id và local id từ giao diện
+        if (ui_TextArea8 != NULL)
+        {
+                Device_ID = atoi(lv_textarea_get_text(ui_TextArea8));
+        }
+        if (ui_TextArea9 != NULL)
+        {
+                datalic.lid = atoi(lv_textarea_get_text(ui_TextArea9));
+        }
+
+        // Hiển thị spinner trong khi chờ phản hồi
+        if (ui_spinner != NULL)
+        {
+                lv_obj_del(ui_spinner);
+                ui_spinner = NULL;
+        }
+        ui_spinner = ui_Spinner_create(ui_SCRconfigdevice);
+
+        // Đánh dấu để vòng lặp chính gửi lệnh cấu hình thiết bị
+        button = 2;
 }
