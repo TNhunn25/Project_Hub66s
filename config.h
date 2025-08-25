@@ -10,7 +10,7 @@
 
 // ==== Chân LED hiển thị trạng thái ====
 #define LED_PIN 46   // Chân GPIO kết nối LED
- 
+
 // Định nghĩa các opcode
 #define LIC_TIME_GET 0x01
 #define LIC_SET_LICENSE 0x02
@@ -28,7 +28,7 @@
 #define private_key "khoabi_mat_123"
 
 // Hàm mã hóa Auth MD5
-String md5Hash(int id_src, int id_des, uint32_t mac_src, uint32_t mac_des, uint8_t opcode, const String &data,
+String md5Hash(int id_src, int id_des, uint8_t opcode, const String &data,
                unsigned long timestamp)
 {
 
@@ -36,8 +36,6 @@ String md5Hash(int id_src, int id_des, uint32_t mac_src, uint32_t mac_des, uint8
     md5.begin();
     md5.add(String(id_src));
     md5.add(String(id_des));
-    md5.add(String(mac_src, HEX));
-    md5.add(String(mac_des, HEX));
     md5.add(String(opcode));
     md5.add(data);
     md5.add(String(timestamp));
@@ -54,10 +52,10 @@ typedef struct
     String license; // Nội dung license
     time_t created;
     time_t expired;
-    uint32_t duration;
-    uint32_t remain;
+    int duration;
+    int remain;
     bool expired_flag; // Đã hết hạn chưa
-    uint32_t nod;      // tổng số thiết bị trong nhóm LID
+    uint32_t nod;      // number of device
     String deviceName; // Tên thiết bị
     String version;
 } LicenseInfo;
@@ -83,13 +81,14 @@ extern int id_des;    // id_des
 extern bool config_processed;
 extern char jsonBuffer[BUFFER_SIZE];
 extern int bufferIndex;
-extern time_t start_time;  
-extern const uint32_t duration;
+extern time_t start_time;
+extern const int duration;
 extern bool expired_flag;
-extern uint8_t expired;
-extern uint32_t now;
-extern uint32_t lastSendTime;
+extern int expired;
+extern unsigned long now;
+extern unsigned long lastSendTime;
 extern String device_id;
+// extern bool networkConnected;
 extern uint32_t nod; // Số lượng thiết bị, mặc định là 10
 
 #endif // CONFIG_H
