@@ -52,13 +52,13 @@ void get_id_lid_ui()
     }
 }
 
-// void Notification(char* messager) {
+void Notification(char* messager) {
 
-//     // lv_label_set_text(ui_Label19, messager);
-//     // _ui_flag_modify(ui_Panel21, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
-//     add_Notification(ui_SCRSetLIC,messager);
+    // lv_label_set_text(ui_Label19, messager);
+    // _ui_flag_modify(ui_Panel21, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+    add_Notification(ui_SCRSetLIC,messager);
 
-// }
+}
 
 void timer_cb(lv_timer_t *timer_)
 {
@@ -86,3 +86,15 @@ void timer_cb(lv_timer_t *timer_)
     lv_timer_del(timer_);
     timer = NULL;
 }
+
+// void update_lic_info_ui()  
+// {
+//     if (ui_LabelDeviceName != NULL && globalLicense.deviceName.length() > 0)
+//     {
+//         lv_label_set_text_fmt(ui_LabelDeviceName, "Device: %s", globalLicense.deviceName.c_str());
+//     }
+//     if (ui_LabelVersion != NULL && globalLicense.version.length() > 0)
+//     {
+//         lv_label_set_text_fmt(ui_LabelVersion, "Firmware: %s", globalLicense.version.c_str());
+//     }
+// }

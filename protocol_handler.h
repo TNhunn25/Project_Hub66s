@@ -154,6 +154,29 @@ void processReceivedData(StaticJsonDocument<512> message, uint8_t opcode, const 
         break;
     }
 
+    case LIC_INFO | 0x80:
+    {
+        Serial.println("Đã nhận phản hồi LIC_INFO:");
+        JsonObject data = message["data"];
+        const char *device_name = data["device_name"].as<const char *>();
+        const char *version = data["version"].as<const char *>();
+
+        if (device_name != NULL)
+        {
+            globalLicense.deviceName = device_name;
+            Serial.print("Device: ");
+            Serial.println(device_name);
+        }
+        if (version != NULL)
+        {
+            globalLicense.version = version;
+            Serial.print("Firmware: ");
+            Serial.println(version);
+        }
+        // update_lic_info_ui();
+        break;
+    }
+
     default:
         if (opcode != 0x83)
         { // Bỏ qua opcode 0x83
@@ -353,6 +376,36 @@ void config_device(int id_src, int device_id, int lid, uint32_t mac_des, unsigne
     // Serial.println(output);
 }
 
+void lic_info(int id_src, int id_des, int lid, uint32_t mac_des, unsigned long now)
+{
+    int opcode = LIC_INFO;
+    uint32_t mac_src = mesh.getNodeId();
+    DynamicJsonDocument dataDoc(128);
+    dataDoc["lid"] = lid;
 
+    if (mac_des == 0)
+    {
+        id_des = 0;
+    }
+
+    String output = createMessage(id_src, id_des, mac_src, mac_des, opcode, dataDoc, now);
+    if (output.length() > sizeof(message.payload))
+    {
+        Serial.println("❌ Payload quá lớn!");
+        return;
+    }
+
+    if (mac_des == 0)
+    {
+        sendToAllNodes(output);
+    }
+    else
+    {
+        sendToNode(mac_des, output);
+    }
+
+    Serial.println("📤 Gửi LIC_INFO:");
+    // Serial.println(output);
+}
 
 #endif // PROTOCOL_HANDLER_H

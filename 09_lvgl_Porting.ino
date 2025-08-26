@@ -387,8 +387,11 @@ void loop()
             // enable_print_ui=true;
             // timer_out=millis();
             break;
+        case 6:
+            Serial.println("Gửi lệnh LIC_INFO");
+            lic_info(MASTER_ID, Device_ID, datalic.lid, 0, millis());
+            break;
         default:
-
             break;
         }
         button = 0;

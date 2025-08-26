@@ -42,5 +42,6 @@ void get_lic_ui();
 void get_id_lid_ui();
 void Notification(char* messager);
 void timer_cb(lv_timer_t * timer);
+// void update_lic_info_ui();
 
 #endif // FUNCTION_H
