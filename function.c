@@ -9,7 +9,7 @@ void update_RTC(char *Hour, char *Minute, char *Second)
     // }
 }
 
-void update_config(char *localID, char *deviceID, char *nod)
+void update_config(const char *localID, const char *deviceID, const char *nod)
 {
     if (ui_TextArea9 != NULL)
     {
@@ -18,7 +18,12 @@ void update_config(char *localID, char *deviceID, char *nod)
     if (ui_TextArea8 != NULL)
     {
         lv_textarea_set_text(ui_TextArea8, deviceID);
-        lv_textarea_set_text(ui_TextArea10, nod); // Lưu ý: Ghi đè deviceID bằng nod, kiểm tra xem có đúng ý định không
+        // lv_textarea_set_text(ui_TextArea10, nod); // Lưu ý: Ghi đè deviceID bằng nod, kiểm tra xem có đúng ý định không
+    }
+
+    if (ui_TextArea10 != NULL)
+    {
+        lv_textarea_set_text(ui_TextArea10, nod);
     }
 }
 
@@ -52,12 +57,12 @@ void get_id_lid_ui()
     }
 }
 
-void Notification(char* messager) {
+void Notification(char *messager)
+{
 
     // lv_label_set_text(ui_Label19, messager);
     // _ui_flag_modify(ui_Panel21, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
-    add_Notification(ui_SCRSetLIC,messager);
-
+    add_Notification(ui_SCRSetLIC, messager);
 }
 
 void timer_cb(lv_timer_t *timer_)
@@ -87,7 +92,7 @@ void timer_cb(lv_timer_t *timer_)
     timer = NULL;
 }
 
-// void update_lic_info_ui()  
+// void update_lic_info_ui()
 // {
 //     if (ui_LabelDeviceName != NULL && globalLicense.deviceName.length() > 0)
 //     {

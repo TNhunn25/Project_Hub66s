@@ -153,6 +153,39 @@ void processReceivedData(StaticJsonDocument<512> message, uint8_t opcode, const 
         Serial.println(Status);
         break;
     }
+    
+    // case LIC_CONFIG_DEVICE | 0x80:
+    // {
+    //     // Chỉ xử lý phản hồi từ đúng thiết bị được yêu cầu cấu hình
+    //     // để tránh việc nhiều node cùng LID đều trả lời.
+    //     if (Device_ID != 0 && config_id != Device_ID)
+    //     {
+    //         Serial.printf("Bỏ qua phản hồi từ ID %d\n", config_id);
+    //         break;
+    //     }
+
+    //     Serial.println("Đã nhận phản hồi LIC_CONFIG_DEVICE:");
+    //     JsonObject data = message["data"];
+    //     int new_id = data["id"];
+    //     int lid = data["lid"];
+    //     int Status = data["status"];
+    //     const char *error_msg = data["error_msg"].as<const char *>();
+
+    //     sprintf(messger, "Status: %d \nDevice ID: %d\nLocal ID: %d\n", Status, new_id, lid);
+    //     if (error_msg != NULL)
+    //     {
+    //         strncat(messger, "Lỗi: ", sizeof(messger) - strlen(messger) - 1);
+    //         strncat(messger, error_msg, sizeof(messger) - strlen(messger) - 1);
+    //     }
+
+    //     Serial.print("Device ID: ");
+    //     Serial.println(new_id);
+    //     Serial.print("Local ID: ");
+    //     Serial.println(lid);
+    //     Serial.print("Status: ");
+    //     Serial.println(Status);
+    //     break;
+    // }
 
     case LIC_INFO | 0x80:
     {
@@ -341,15 +374,26 @@ void getlicense(int id_des, int lid, uint32_t mac_des, unsigned long now)
     // Serial.println(output);
 }
 
-void config_device(int id_src, int device_id, int lid, uint32_t mac_des, unsigned long now)
+void config_device(int id_src, int device_id, int lid, uint32_t mac_des, unsigned long now,
+                   const char *mesh_ssid = nullptr, const char *mesh_password = nullptr,
+                   uint16_t mesh_port = 0, uint8_t mesh_channel = 0)
 {
     int opcode = LIC_CONFIG_DEVICE;
     uint32_t mac_src = mesh.getNodeId();
     int id_des = device_id;
 
-    DynamicJsonDocument dataDoc(128);
+    // Nếu người gọi không truyền vào thông số Mesh thì sử dụng giá trị mặc định
+    const char *ssid = (mesh_ssid && mesh_ssid[0]) ? mesh_ssid : MESH_SSID;
+    const char *password = (mesh_password && mesh_password[0]) ? mesh_password : MESH_PASSWORD;
+    uint16_t port = mesh_port ? mesh_port : MESH_PORT;
+    uint8_t channel = mesh_channel ? mesh_channel : MESH_CHANNEL;
+
+    DynamicJsonDocument dataDoc(256);
     dataDoc["id"] = device_id;
     dataDoc["lid"] = lid;
+    dataDoc["mesh_ssid"] = ssid;
+    dataDoc["mesh_password"] = password;
+    dataDoc["mesh_channel"] = channel;
 
     if (mac_des == 0)
     {
