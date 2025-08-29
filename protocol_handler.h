@@ -1,478 +1,434 @@
 #ifndef PROTOCOL_HANDLER_H
 #define PROTOCOL_HANDLER_H
 
-#include <Arduino.h>
 #include <WiFi.h>
-#include <painlessMesh.h>
 #include <ArduinoJson.h>
-// #include <deque>
-
+#include <MD5Builder.h>
 #include "config.h"
-#include "mesh_handler.h"
 #include "led_status.h"
-#include "serial.h"
-#include "function.h"
-#include "packet_storage.h"
-extern painlessMesh mesh; // Khởi tạo đối tượng mesh toàn cục
-extern uint32_t lastTargetNode;
+// #include "serial.h"
+#include <Preferences.h>
+#include <painlessMesh.h>
 
-// extern std::deque<LicenseRecord> packetPersistQueue;
+extern painlessMesh mesh; // Mesh object toàn cục
+extern bool dang_gui;
+extern unsigned long lastSendTime;
+extern volatile bool hasNewPacket;
+extern int lastPacketLen;
+extern uint32_t lastPacketNodeId;
+extern uint8_t lastPacketData[250];
+extern uint32_t lastPacketNodeId; // Lưu nodeId của gói vừa nhận (thay cho MAC)
+extern PayloadStruct message;
+extern Preferences preferences;
+extern unsigned long runtime;
+extern uint32_t nod;
 
-// Tạo tin nhắn phản hồi
-String createMessage(int id_src, int id_des, uint32_t mac_src, uint32_t mac_des,
-                     uint8_t opcode, const JsonVariant &data, unsigned long timestamp = 0)
+// ===== GỬI GÓI TIN QUA MESH =====
+String createMessage(int id_src, int id_des, uint32_t mac_src, uint32_t mac_des, uint8_t opcode,
+                     const JsonVariant &data, unsigned long timestamp = 0)
 {
     if (timestamp == 0)
-    {
-        timestamp = millis() / 1000; // Mô phỏng thời gian Unix
-    }
-    String dataStr;
-    serializeJson(data, dataStr); // Chuyển dữ liệu thành chuỗi JSON
+        timestamp = millis() / 1000; // mô phỏng thời gian Unix
 
-    // Tạo mã MD5 xác thực
-    String auth = md5Hash(id_src, id_des, mac_src, mac_des, opcode, dataStr, timestamp); // Tạo mã MD5
-    DynamicJsonDocument jsonDoc(512);
-    jsonDoc["id_src"] = id_src; // ID nguồn
-    jsonDoc["id_des"] = id_des; // ID đích
+    String dataStr;
+    serializeJson(data, dataStr);
+    String auth = md5Hash(id_src, id_des, mac_src, mac_des, opcode, dataStr, timestamp);
+
+    StaticJsonDocument<512> jsonDoc;
+    jsonDoc["id_src"] = id_src;
+    jsonDoc["id_des"] = id_des;
     jsonDoc["mac_src"] = String(mac_src, HEX);
-    jsonDoc["mac_des"] = String(mac_des, HEX); // Địa chỉ MAC nguồn và đích
-    jsonDoc["opcode"] = opcode;                // Opcode
-    jsonDoc["data"] = data;                    // Dữ liệu
-    jsonDoc["time"] = timestamp;               // Thời gian
-    jsonDoc["auth"] = auth;                    // Mã xác thực
+    jsonDoc["mac_des"] = String(mac_des, HEX);
+    jsonDoc["opcode"] = opcode;
+    jsonDoc["data"] = data;
+    jsonDoc["time"] = timestamp;
+    jsonDoc["auth"] = auth;
 
-    String output;
-    serializeJson(jsonDoc, output); // Chuyển thành chuỗi JSON
-    return output;
+    String messageStr;
+    serializeJson(jsonDoc, messageStr);
+    return messageStr;
 }
 
-// Gửi payload JSON qua Mesh broadcast
-// void meshBroadcastJson(const String &payload)
-// {
-//     String output;
-//     bool ok = mesh.sendBroadcast(payload);
-//     Serial.printf("[mesh] broadcast %s: %s\n", ok ? "OK" : "FAIL", payload.c_str());
-// }
-
-void meshBroadcastJson(const String &payload)
+void sendResponse(int id_src, int id_des, uint32_t mac_src, uint32_t mac_des, uint8_t opcode,
+                  const JsonVariant &data, uint32_t destNodeId)
 {
-    sendToAllNodes(payload);
-}
-
-// Xử lý phản hồi từ Mesh
-void processReceivedData(StaticJsonDocument<512> message, uint8_t opcode, const JsonVariant &dataObj, uint32_t nodeId)
-{
-    int config_id = message["id_src"];
-    int id_des = message["id_des"];
-    uint32_t mac_src = strtoul(message["mac_src"], nullptr, 16);
-    uint32_t mac_des = strtoul(message["mac_des"], nullptr, 16);
-    String dataStr;
-    serializeJson(message["data"], dataStr);
-    unsigned long timestamp = message["time"].as<unsigned long>();
-    String receivedAuth = message["auth"].as<String>();
-
-    String calculatedAuth = md5Hash(config_id, id_des, mac_src, mac_des, opcode, dataStr, timestamp);
-
-    if (!receivedAuth.equalsIgnoreCase(calculatedAuth))
+    String packet = createMessage(id_src, id_des, mac_src, mac_des, opcode, data);
+    if (packet.length() > sizeof(message.payload))
     {
-        Serial.println("❌ Lỗi xác thực: Mã MD5 không khớp!");
+        Serial.println("❌ Payload quá lớn, không gửi được");
+        led.setState(CONNECTION_ERROR);
         return;
+    }
+    packet.toCharArray(message.payload, sizeof(message.payload));
+    dang_gui = true;
+    bool ok = mesh.sendSingle(destNodeId, packet);
+    Serial.printf("📤 [mesh] sendSingle to %u %s\n", destNodeId, ok ? "OK" : "FAIL");
+    Serial.println(packet);
+    lastSendTime = millis();
+    if (!ok)
+    {
+        Serial.println("❌ Gửi gói tin thất bại");
+        led.setState(CONNECTION_ERROR);
     }
     else
     {
-        Serial.println("OK!");
-    }
-
-    serializeJson(message, Serial);
-
-    switch (opcode)
-    {
-
-    case LIC_SET_LICENSE | 0x80:
-    {
-        JsonObject data = message["data"];
-        int lid = data["lid"];
-        int Status = data["status"];
-        const char *error_msg = data["error_msg"].as<const char *>();
-
-        sprintf(messger, "Status: %d \nLocal ID: %d\n", Status, lid); // đổi %s sang %d
-        if (error_msg != NULL)
-        {
-            strncat(messger, "Lỗi: ", sizeof(messger) - strlen(messger) - 1);
-            strncat(messger, error_msg, sizeof(messger) - strlen(messger) - 1);
-            /* code */
-        }
-
-        // enable_print_ui_set=true;
-        // timer_out=millis();
-        Serial.println("== Đã nhận phản hồi Data Object ==");
-        Serial.print("LID: ");
-        Serial.println(lid);
-        Serial.print("Status: ");
-        Serial.println(Status);
-        break;
-    }
-
-    case LIC_GET_LICENSE | 0x80:
-    {
-        Serial.println("Đã nhận phản hồi HUB_GET_LICENSE:");
-        JsonObject data = message["data"];
-        int lid = data["lid"];
-        uint32_t time_temp = data["remain"];
-
-        addNodeToList(config_id, lid, nodeId, time_temp); // millis()
-
-        // addNodeToList(id_src, lid, nodeId, time_temp);
-        enable_print_ui = true;
-        // printDeviceList();
-        // Serial.println(data["license"].as<String>());
-        break;
-    }
-
-    case LIC_CONFIG_DEVICE | 0x80:
-    {
-        Serial.println("Đã nhận phản hồi LIC_CONFIG_DEVICE:");
-        JsonObject data = message["data"];
-        int new_id = data["id"];
-        int lid = data["lid"];
-        int Status = data["status"];
-        const char *error_msg = data["error_msg"].as<const char *>();
-
-        sprintf(messger, "Status: %d \nDevice ID: %d\nLocal ID: %d\n", Status, new_id, lid);
-        if (error_msg != NULL)
-        {
-            strncat(messger, "Lỗi: ", sizeof(messger) - strlen(messger) - 1);
-            strncat(messger, error_msg, sizeof(messger) - strlen(messger) - 1);
-        }
-
-        Serial.print("Device ID: ");
-        Serial.println(new_id);
-        Serial.print("Local ID: ");
-        Serial.println(lid);
-        Serial.print("Status: ");
-        Serial.println(Status);
-        break;
-    }
-    
-    // case LIC_CONFIG_DEVICE | 0x80:
-    // {
-    //     // Chỉ xử lý phản hồi từ đúng thiết bị được yêu cầu cấu hình
-    //     // để tránh việc nhiều node cùng LID đều trả lời.
-    //     if (Device_ID != 0 && config_id != Device_ID)
-    //     {
-    //         Serial.printf("Bỏ qua phản hồi từ ID %d\n", config_id);
-    //         break;
-    //     }
-
-    //     Serial.println("Đã nhận phản hồi LIC_CONFIG_DEVICE:");
-    //     JsonObject data = message["data"];
-    //     int new_id = data["id"];
-    //     int lid = data["lid"];
-    //     int Status = data["status"];
-    //     const char *error_msg = data["error_msg"].as<const char *>();
-
-    //     sprintf(messger, "Status: %d \nDevice ID: %d\nLocal ID: %d\n", Status, new_id, lid);
-    //     if (error_msg != NULL)
-    //     {
-    //         strncat(messger, "Lỗi: ", sizeof(messger) - strlen(messger) - 1);
-    //         strncat(messger, error_msg, sizeof(messger) - strlen(messger) - 1);
-    //     }
-
-    //     Serial.print("Device ID: ");
-    //     Serial.println(new_id);
-    //     Serial.print("Local ID: ");
-    //     Serial.println(lid);
-    //     Serial.print("Status: ");
-    //     Serial.println(Status);
-    //     break;
-    // }
-
-    case LIC_INFO | 0x80:
-    {
-        Serial.println("Đã nhận phản hồi LIC_INFO:");
-        JsonObject data = message["data"];
-        const char *device_name = data["device_name"].as<const char *>();
-        const char *version = data["version"].as<const char *>();
-
-        if (device_name != NULL)
-        {
-            globalLicense.deviceName = device_name;
-            Serial.print("Device: ");
-            Serial.println(device_name);
-        }
-        if (version != NULL)
-        {
-            globalLicense.version = version;
-            Serial.print("Firmware: ");
-            Serial.println(version);
-        }
-        // update_lic_info_ui();
-        break;
-    }
-
-    default:
-        if (opcode != 0x83)
-        { // Bỏ qua opcode 0x83
-            Serial.printf("Unknown opcode: 0x%02X\n", opcode);
-        }
-        break;
+        Serial.println("✅ Gửi gói tin thành công");
+        led.setState(FLASH_TWICE);
     }
 }
 
+// ===== LƯU/LOAD LICENSE, DEVICE CONFIG =====
+void saveLicenseData(bool verbose = true)
+{
+    preferences.begin("license", false);
+    preferences.putInt("lid", globalLicense.lid);
+    preferences.putULong("created", globalLicense.created);
+    preferences.putInt("duration", globalLicense.duration);
+    preferences.putInt("remain", globalLicense.remain);
+    preferences.putBool("expired_flag", globalLicense.expired_flag);
+    preferences.putULong("runtime", runtime);
+    preferences.putUInt("nod", globalLicense.nod);
+    preferences.putULong("last_save", millis() / 1000);
+    preferences.end();
+    if (verbose)
+    {
+        Serial.println("✅ Đã lưu dữ liệu license vào NVS");
+        Serial.print("Expired: ");
+        Serial.println(globalLicense.expired_flag ? 1 : 0);
+        Serial.print("Remain: ");
+        Serial.println(globalLicense.remain);
+    }
+}
+
+void saveDeviceConfig()
+{
+    preferences.begin("license", false);
+    preferences.putUInt("config_lid", config_lid);
+    preferences.putUInt("config_id", config_id);
+    preferences.putUInt("nod", ::nod);
+    preferences.end();
+}
+
+void loadLicenseData()
+{
+    preferences.begin("license", true);
+    globalLicense.lid = preferences.getInt("lid", 0);
+    config_lid = preferences.getInt("config_lid", config_lid);
+    config_id = preferences.getInt("config_id", config_id);
+    globalLicense.created = preferences.getULong("created", 0);
+    globalLicense.duration = preferences.getInt("duration", 0);
+    globalLicense.remain = preferences.getInt("remain", 0);
+    globalLicense.expired_flag = preferences.getBool("expired_flag", false);
+    runtime = preferences.getULong("runtime", 0);
+    globalLicense.nod = preferences.getUInt("nod", mesh.getNodeList().size() + 1);
+    ::nod = globalLicense.nod;
+    preferences.end();
+    Serial.println("✅ Đã đọc và cập nhật dữ liệu license từ NVS:");
+    Serial.print("LID: ");
+    Serial.println(globalLicense.lid);
+    Serial.print("Expired: ");
+    Serial.println(globalLicense.expired_flag ? 1 : 0);
+    Serial.print("Runtime: ");
+    Serial.println(runtime);
+}
+
+// ===== CALLBACK KHI NHẬN TỪ MESH =====
 void onMeshReceive(uint32_t from, String &msg)
 {
-    Serial.println("\n📩 Received response:");
+    // Serial.printf("[mesh] Received from %u: %s\n", from, msg.c_str());
 
-    StaticJsonDocument<512> doc;
-    DeserializationError error = deserializeJson(doc, msg);
+    Serial.printf("📥 [Leader] App received from %u: %s\n", from, msg.c_str()); // Leader
 
-    if (error)
-    {
-        Serial.print("deserializeJson() failed: ");
-        Serial.println(error.c_str());
-        return;
-    }
+    Serial.printf("📥 [Node %u] App received from %u: %s\n", mesh.getNodeId(), from, msg.c_str()); // Node
 
-    // Trích thông tin cần thiết từ gói tin
-    uint8_t opcode = doc["opcode"];
-    JsonObject payload = doc["data"];
-    int id_src = doc["id_src"];
-    int id_des = doc["id_des"];
-    String mac_src = doc["mac_src"];
-    String mac_des = doc["mac_des"];
-    unsigned long timestamp = doc["time"];
-    String auth = doc["auth"];
+    // Lưu nodeId và data để xử lý ở loop nếu muốn (hoặc gọi luôn xử lý)
+    size_t len = msg.length();
+    if (len > sizeof(lastPacketData))
+        len = sizeof(lastPacketData);
+    memcpy(lastPacketData, msg.c_str(), len);
+    lastPacketLen = len;
+    lastPacketNodeId = from;
+    hasNewPacket = true;
 
-    int status = payload.containsKey("status") ? payload["status"] : 0;
-
-    Serial.printf("\n[mesh RX] From nodeId = 0x%08X (Node ID = %d)  timestamp = %lu\n", from, id_src, timestamp);
-    Serial.printf("Opcode: 0x%02X   Status: %d\n", opcode, status);
-    // serializeJsonPretty(doc, Serial);
-    // Serial.println();
-
-    // Gọi xử lý phản hồi (sẽ tự ghi flash nếu cần)
-    processReceivedData(doc, opcode, payload, from);
+    // Hoặc gọi luôn xử lý (nếu không cần defer trong loop):
+    // xu_ly_data(from, (const uint8_t*)msg.c_str(), len);
 }
 
-// // --- Gửi HUB_SET_LICENSE qua Mesh ---
-void set_license(int id_src, int id_des, int lid, uint32_t mac_des,
-                 time_t created, uint32_t duration, uint8_t expired,
-                 uint32_t now)
+// ===== HÀM PHÂN TÍCH, CHUYỂN TỪ BUFFER -> THAM SỐ =====
+void xu_ly_data(uint32_t from, const uint8_t *data, int len);
+
+// ===== HÀM XỬ LÝ CHÍNH SAU KHI ĐÃ PARSE JSON =====
+void xu_ly_data(uint32_t from, int id_src, int id_des, uint32_t mac_src, uint32_t mac_des,
+                uint8_t opcode, const JsonVariant &data, unsigned long packetTime, const String &recvAuth)
 {
-    // Nếu không chỉ định MAC đích
-    if (mac_des == 0)
+    Serial.println("\n📩 Xử lý data từ Mesh:");
+    // Bỏ qua nếu không phải đích
+    if (id_des != config_id && id_des != 0)
     {
-        bool found = false;
+        Serial.println("❌ Không dành cho node này");
+        return;
+    }
 
-        // Nếu chỉ định ID đích, tìm node có ID đó
-        if (id_des != 0)
+    // MD5 verify
+    String dataStr;
+    serializeJson(data, dataStr);
+    String calcAuth = md5Hash(id_src, id_des, mac_src, mac_des, opcode, dataStr, packetTime);
+    if (!recvAuth.equalsIgnoreCase(calcAuth))
+    {
+        Serial.println("❌ MD5 auth failed");
+        StaticJsonDocument<128> respDoc;
+        respDoc["status"] = 1;
+        sendResponse(config_id, id_src, mac_src, mac_des, opcode | 0x80, respDoc, from);
+        led.setState(CONNECTION_ERROR);
+        return;
+    }
+    Serial.println("✅ MD5 auth success");
+    Serial.print("Opcode: 0x");
+    Serial.println(opcode, HEX);
+
+    // Xử lý từng opcode như trước
+    switch (opcode)
+    {
+    case LIC_SET_LICENSE:
+    {
+        JsonObject licData = data.as<JsonObject>();
+        int lid = licData["lid"].as<int>();
+        int id = licData["id"].as<int>();
+        time_t created = licData["created"].as<long>();
+        uint32_t duration = licData["duration"].as<int>();
+        int expired = licData["expired"].as<int>();
+        int nod = licData["nod"].as<int>();
+
+        StaticJsonDocument<256> respDoc;
+        bool isValid = false;
+        String error_msg = "";
+
+        if (lid != 0 && lid == config_lid)
         {
-            for (int i = 0; i < Device.deviceCount; i++)
-            {
-                if (Device.DeviceID[i] == id_des)
-                {
-                    found = true;
-                    set_license(id_src, id_des, lid, Device.NodeID[i], created,
-                                duration, expired, now);
-                    break;
-                }
-            }
-            if (!found)
-            {
-                Serial.println("❌ Không tìm thấy node với Device ID tương ứng");
-            }
+            if (id == 0 || id == config_id)
+                isValid = true;
+            else
+                error_msg = "ID không dành cho thiết bị này";
         }
-        else // Không chỉ định ID đích, gửi tới tất cả node cùng LID
+        else
         {
-            for (int i = 0; i < Device.deviceCount; i++)
-            {
-                if (Device.LocalID[i] == lid)
-                {
-                    found = true;
-                    set_license(id_src, Device.DeviceID[i], lid, Device.NodeID[i],
-                                created, duration, expired, now);
-                }
-            }
-            if (!found)
-            {
-                Serial.println("❌ Không tìm thấy node nào có cùng LID");
-            }
+            error_msg = "LID không hợp lệ";
         }
-        return;
-    }
 
-    uint32_t mac_src = mesh.getNodeId(); // MAC nguồn
-    int opcode = LIC_SET_LICENSE;
-    // int id_des = config_id; // ID của LIC66S
-
-    DynamicJsonDocument dataDoc(256);
-    dataDoc["lid"] = lid;
-    dataDoc["created"] = created;
-    dataDoc["duration"] = duration;
-    dataDoc["expired"] = expired;
-
-    String output = createMessage(id_src, id_des, mac_src, mac_des, opcode, dataDoc, now);
-    if (output.length() > sizeof(message.payload))
-    {
-        Serial.println("❌ Payload quá lớn!");
-        return;
-    }
-    // Chờ đến khi node đích có trong mạng mesh trước khi gửi
-    const unsigned long timeout = 5000; // thời gian chờ tối đa 5 giây
-    unsigned long start = millis();
-    while (!mesh.isConnected(mac_des) && (millis() - start < timeout))
-    {
-        mesh.update(); // duy trì mesh và tìm node
-        delay(50);
-    }
-
-    if (!mesh.isConnected(mac_des))
-    {
-        Serial.printf("❌ Node 0x%08X chưa kết nối, hủy gửi HUB_SET_LICENSE\n", mac_des);
-        Serial.println("Không set license cho node");
-        return;
-    }
-    sendToNode(mac_des, output);
-
-    // Serial.println("\n📤 Gửi HUB_SET_LICENSE:");
-    // Serial.println(output);
-}
-
-void getlicense(int id_des, int lid, uint32_t mac_des, unsigned long now)
-{
-    int opcode = LIC_GET_LICENSE;
-    uint32_t mac_src = mesh.getNodeId();
-    int id_src = config_id; // ID của LIC66S
-
-    DynamicJsonDocument dataDoc(128);
-    dataDoc["lid"] = lid;
-
-    // Nếu broadcast theo MAC, cũng broadcast theo ID
-    if (mac_des == 0)
-    {
-        id_des = 0;
-    }
-
-    String output = createMessage(id_src, id_des, mac_src, mac_des, opcode, dataDoc, now);
-    if (output.length() > sizeof(message.payload))
-    {
-        Serial.println("❌ Payload quá lớn!");
-        return;
-    }
-
-    // Gửi gói tin: broadcast nếu mac_des == 0, ngược lại gửi tới node cụ thể
-    if (mac_des == 0)
-    {
-        sendToAllNodes(output);
-    }
-    else
-    {
-        sendToNode(mac_des, output);
-    }
-
-    Serial.println("📤 Gửi HUB_GET_LICENSE:");
-    // Serial.println(output);
-}
-
-void config_device(int id_src, int device_id, int lid, uint32_t mac_des, unsigned long now,
-                   const char *mesh_ssid = nullptr, const char *mesh_password = nullptr,
-                   uint16_t mesh_port = 0, uint8_t mesh_channel = 0)
-{
-    int opcode = LIC_CONFIG_DEVICE;
-    uint32_t mac_src = mesh.getNodeId();
-    int id_des = device_id;
-
-    // Nếu không truyền MAC đích, ưu tiên dùng node đã chọn gần nhất
-    if (mac_des == 0)
-    {
-        if (lastTargetNode != 0)
+        if (isValid)
         {
-            mac_des = lastTargetNode;
-        }
-        else if (device_id != 0)
-        {
-            bool found = false;
-            for (int i = 0; i < Device.deviceCount; i++)
+            if (expired == 0)
             {
-                if (Device.DeviceID[i] == device_id)
+                globalLicense.created = created;
+                globalLicense.duration = duration;
+                // globalLicense.nod = nod;
+                start_time = millis() / 1000;
+                runtime = 0;
+                globalLicense.remain = duration;
+                globalLicense.expired_flag = false;
+                saveLicenseData();
+
+                respDoc["lid"] = lid;
+                respDoc["id"] = config_id;
+                // respDoc["nod"] = globalLicense.nod;
+                respDoc["status"] = 0;
+                sendResponse(config_id, id_src, mac_des, mac_src, LIC_SET_LICENSE | 0x80, respDoc, from);
+                Serial.println("✅ Cập nhật giấy phép thành công: LID = " + String(lid) + ", ID = " + String(config_id));
+                led.setState(FLASH_TWICE);
+                while (led.isBusy())
                 {
-                    mac_des = Device.NodeID[i];
-                    found = true;
-                    break;
+                    led.update();
+                    delay(10);
                 }
+                saveLicenseData();
+                delay(100);
             }
-            if (!found)
+            else
             {
-                Serial.println("❌ Không tìm thấy node với Device ID tương ứng");
-                return;
+                respDoc["status"] = 3;
+                respDoc["nod"] = globalLicense.nod;
+                sendResponse(config_id, id_src, mac_des, mac_src, LIC_SET_LICENSE | 0x80, respDoc, from);
+                Serial.println("❌ Giấy phép hết hiệu lực");
+                led.setState(CONNECTION_ERROR);
             }
         }
         else
         {
-            Serial.println("❌ Không xác định được node đích để cấu hình");
-            return;
+            respDoc["status"] = 1;
+            respDoc["error_msg"] = error_msg;
+            Serial.println("❌ Lỗi: " + error_msg + " (LID = " + String(lid) + ", ID = " + String(id) + ", config_id = " + String(config_id) + ")");
+            sendResponse(config_id, id_src, mac_des, mac_src, LIC_SET_LICENSE | 0x80, respDoc, from);
+            led.setState(CONNECTION_ERROR);
         }
+        break;
     }
-
-    // Cập nhật node đích cuối cùng để phục vụ retry/ACK
-    lastTargetNode = mac_des;
-
-    // Nếu người gọi không truyền vào thông số Mesh thì sử dụng giá trị mặc định
-    const char *ssid = (mesh_ssid && mesh_ssid[0]) ? mesh_ssid : MESH_SSID;
-    const char *password = (mesh_password && mesh_password[0]) ? mesh_password : MESH_PASSWORD;
-    uint16_t port = mesh_port ? mesh_port : MESH_PORT;
-    uint8_t channel = mesh_channel ? mesh_channel : MESH_CHANNEL;
-
-    DynamicJsonDocument dataDoc(256);
-    dataDoc["id"] = device_id;
-    dataDoc["lid"] = lid;
-    dataDoc["mesh_ssid"] = ssid;
-    dataDoc["mesh_password"] = password;
-    dataDoc["mesh_channel"] = channel;
-
-    String output = createMessage(id_src, id_des, mac_src, mac_des, opcode, dataDoc, now);
-    if (output.length() > sizeof(message.payload))
+    case LIC_GET_LICENSE:
     {
-        Serial.println("❌ Payload quá lớn!");
-        return;
+        JsonObject licData = data.as<JsonObject>();
+        uint32_t lid = licData["lid"].as<int>();
+        StaticJsonDocument<256> respDoc;
+        if (lid == config_lid || lid == 0)
+        {
+            respDoc["lid"] = globalLicense.lid;
+            respDoc["created"] = globalLicense.created;
+            respDoc["expired"] = globalLicense.expired_flag ? 1 : 0;
+            respDoc["duration"] = globalLicense.duration;
+            respDoc["remain"] = globalLicense.remain;
+            respDoc["nod"] = globalLicense.nod;
+            respDoc["status"] = 0;
+            Serial.println("✅ License info sent for LID = " + String(config_lid));
+            sendResponse(config_id, id_src, mac_des, mac_src, LIC_GET_LICENSE | 0x80, respDoc, from);
+            led.setState(FLASH_TWICE);
+            while (led.isBusy())
+            {
+                led.update();
+                delay(10);
+            }
+            if (globalLicense.expired_flag || globalLicense.remain <= 0)
+            {
+                Serial.println(F("🔒 License đã HẾT HẠN!"));
+                led.setState(LICENSE_EXPIRED);
+            }
+            else
+            {
+                Serial.printf("🔓 License còn %lu phút\n", globalLicense.remain);
+                led.setState(NORMAL_STATUS);
+            }
+        }
+        else
+        {
+            Serial.println("❌ LID không hợp lệ: " + String(lid));
+            led.setState(CONNECTION_ERROR);
+        }
+        break;
     }
-
-    sendToNode(mac_des, output);
-
-    Serial.println("📤 Gửi LIC_CONFIG_DEVICE (config device):");
-    // Serial.println(output);
+    case CONFIG_DEVICE:
+    {
+        JsonObject licData = data.as<JsonObject>();
+        int new_lid = licData["lid"].as<int>();
+        int new_id = licData["id"].as<int>();
+        uint32_t nod = licData["nod"].as<uint32_t>();
+        StaticJsonDocument<256> respDoc;
+        if (new_lid > 0 && new_id > 0)
+        {
+            config_lid = new_lid;
+            config_id = new_id;
+            globalLicense.lid = new_lid;
+            globalLicense.id = new_id;
+            globalLicense.nod = nod;
+            saveDeviceConfig();
+            preferences.begin("license", false);
+            preferences.putUInt("lid", globalLicense.lid);
+            preferences.putUInt("id", globalLicense.id);
+            preferences.putUInt("nod", globalLicense.nod);
+            preferences.end();
+            led.setState(FLASH_TWICE);
+            Serial.println("✅ Cấu hình thành công: LID = " + String(new_lid) + ", ID = " + String(new_id) + ", NOD = " + String(nod));
+            respDoc["status"] = 0;
+            respDoc["lid"] = globalLicense.lid;
+            respDoc["id"] = globalLicense.id;
+            respDoc["nod"] = globalLicense.nod;
+        }
+        else
+        {
+            respDoc["status"] = 1;
+            respDoc["error_msg"] = "LID hoặc ID mới không hợp lệ";
+            Serial.println("❌ Lỗi: LID hoặc ID mới không hợp lệ (LID = " + String(new_lid) + ", ID = " + String(new_id) + ")");
+        }
+        sendResponse(config_id, id_src, mac_src, mac_des, CONFIG_DEVICE | 0x80, respDoc, from);
+        break;
+    }
+    case LIC_LICENSE_DELETE:
+    {
+        int lid = data["lid"].as<int>();
+        StaticJsonDocument<256> respDoc;
+        respDoc["lid"] = lid;
+        respDoc["status"] = (lid == globalLicense.lid) ? 0 : 3;
+        if (lid == globalLicense.lid)
+        {
+            globalLicense.lid = 0;
+            globalLicense.created = 0;
+            globalLicense.duration = 0;
+            globalLicense.remain = 0;
+            globalLicense.expired_flag = false;
+            saveLicenseData();
+        }
+        sendResponse(config_id, id_src, mac_src, mac_des, LIC_LICENSE_DELETE | 0x80, respDoc, from);
+        Serial.println(lid == globalLicense.lid ? "✅ Đã xóa license cho LID = " + String(lid) : "❌ Không tìm thấy license cho LID = " + String(lid));
+        led.setState(lid == globalLicense.lid ? NORMAL_STATUS : CONNECTION_ERROR);
+        break;
+    }
+    case LIC_LICENSE_DELETE_ALL:
+    {
+        globalLicense.lid = 0;
+        globalLicense.created = 0;
+        globalLicense.duration = 0;
+        globalLicense.remain = 0;
+        globalLicense.expired_flag = false;
+        saveLicenseData();
+        StaticJsonDocument<256> respDoc;
+        respDoc["status"] = 0;
+        sendResponse(config_id, id_src, mac_src, mac_des, LIC_LICENSE_DELETE_ALL | 0x80, respDoc, from);
+        Serial.println("✅ Đã xóa tất cả license.");
+        led.setState(NORMAL_STATUS);
+        break;
+    }
+    case LIC_TIME_GET:
+    {
+        StaticJsonDocument<256> respDoc;
+        respDoc["time"] = millis() / 1000;
+        respDoc["status"] = 0;
+        sendResponse(config_id, id_src, mac_src, mac_des, LIC_TIME_GET | 0x80, respDoc, from);
+        Serial.println("✅ Time info sent.");
+        break;
+    }
+    case LIC_INFO:
+    {
+        StaticJsonDocument<256> respDoc;
+        respDoc["deviceName"] = globalLicense.deviceName;
+        respDoc["version"] = globalLicense.version;
+        respDoc["status"] = 0;
+        sendResponse(config_id, id_src, mac_src, mac_des, LIC_INFO_RESPONSE, respDoc, from);
+        Serial.println("✅ Device info sent.");
+        break;
+    }
+    default:
+    {
+        StaticJsonDocument<256> respDoc;
+        respDoc["status"] = 255;
+        sendResponse(config_id, id_src, mac_src, mac_des, opcode | 0x80, respDoc, from);
+        Serial.printf("❌ Unknown opcode: 0x%02X\n", opcode);
+        led.setState(CONNECTION_ERROR);
+        break;
+    }
+    }
 }
 
-void lic_info(int id_src, int id_des, int lid, uint32_t mac_des, unsigned long now)
+// ===== HÀM PARSE JSON BUFFER VÀ GỌI XỬ LÝ CHÍNH =====
+void xu_ly_data(uint32_t from, const uint8_t *data, int len)
 {
-    int opcode = LIC_INFO;
-    uint32_t mac_src = mesh.getNodeId();
-    DynamicJsonDocument dataDoc(128);
-    dataDoc["lid"] = lid;
-
-    if (mac_des == 0)
+    String msg((const char *)data, len);
+    StaticJsonDocument<512> doc;
+    DeserializationError error = deserializeJson(doc, msg);
+    if (error)
     {
-        id_des = 0;
-    }
-
-    String output = createMessage(id_src, id_des, mac_src, mac_des, opcode, dataDoc, now);
-    if (output.length() > sizeof(message.payload))
-    {
-        Serial.println("❌ Payload quá lớn!");
+        Serial.print("❌ Lỗi parse JSON trong xu_ly_data: ");
+        Serial.println(error.c_str());
         return;
     }
+    int id_src = doc["id_src"] | 0;
+    int id_des = doc["id_des"] | 0;
+    String mac_src_str = doc["mac_src"] | "";
+    String mac_des_str = doc["mac_des"] | "";
+    uint8_t opcode = doc["opcode"] | 0;
+    JsonVariant data_field = doc["data"];
+    unsigned long packetTime = doc["time"] | 0;
+    String auth = doc["auth"] | "";
 
-    if (mac_des == 0)
-    {
-        sendToAllNodes(output);
-    }
-    else
-    {
-        sendToNode(mac_des, output);
-    }
+    uint32_t mac_src = strtoul(mac_src_str.c_str(), nullptr, 16);
+    uint32_t mac_des = strtoul(mac_des_str.c_str(), nullptr, 16);
 
-    Serial.println("📤 Gửi LIC_INFO:");
-    // Serial.println(output);
+    xu_ly_data(from, id_src, id_des, mac_src, mac_des, opcode, data_field, packetTime, auth);
 }
 
 #endif // PROTOCOL_HANDLER_H
