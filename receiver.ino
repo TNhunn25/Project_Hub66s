@@ -42,11 +42,6 @@ uint32_t nod = 0; // số lượng thiết bị trong mesh, sẽ được cập 
 
 bool dang_gui = false; // cờ đang gửi
 
-// Thông số mạng mesh có thể cấu hình
-String mesh_ssid = MESH_SSID;
-String mesh_password = MESH_PASSWORD;
-uint8_t mesh_channel = MESH_CHANNEL;
-
 unsigned long lastTime = 0; // thời điểm gửi lần cuối
 uint8_t retries = 0;        // số lần đã thử gửi
 
