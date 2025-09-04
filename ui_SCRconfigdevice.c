@@ -6,6 +6,7 @@
 #include "ui.h"
 
 lv_obj_t * ui_SCRconfigdevice = NULL;
+lv_obj_t * ui_Panel37 = NULL;
 lv_obj_t * ui_Image5 = NULL;
 lv_obj_t * ui_Panel24 = NULL;
 lv_obj_t * ui_Label24 = NULL;
@@ -34,6 +35,16 @@ lv_obj_t * ui_Label32 = NULL;
 lv_obj_t * ui_Panel36 = NULL;
 lv_obj_t * ui_Label33 = NULL;
 // event funtions
+void ui_event_Panel37(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_screen_change(&ui_SCRconfigdevice2, LV_SCR_LOAD_ANIM_MOVE_LEFT, 500, 0, &ui_SCRconfigdevice2_screen_init);
+        _ui_screen_delete(&ui_SCRconfigdevice);
+    }
+}
+
 void ui_event_Panel24(lv_event_t * e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -142,6 +153,21 @@ void ui_SCRconfigdevice_screen_init(void)
     lv_obj_set_style_bg_opa(ui_SCRconfigdevice, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_src(ui_SCRconfigdevice, &ui_img_settings_bg_png, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+    ui_Panel37 = lv_obj_create(ui_SCRconfigdevice);
+    lv_obj_set_width(ui_Panel37, 67);
+    lv_obj_set_height(ui_Panel37, 69);
+    lv_obj_set_x(ui_Panel37, 348);
+    lv_obj_set_y(ui_Panel37, -8);
+    lv_obj_set_align(ui_Panel37, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Panel37, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_Panel37, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Panel37, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_src(ui_Panel37, &ui_img_1101766569, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(ui_Panel37, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_img_src(ui_Panel37, &ui_img_icn_x_png, LV_PART_MAIN | LV_STATE_CHECKED);
+    lv_obj_set_style_bg_img_recolor(ui_Panel37, lv_color_hex(0x00B9FF), LV_PART_MAIN | LV_STATE_CHECKED);
+    lv_obj_set_style_bg_img_recolor_opa(ui_Panel37, 255, LV_PART_MAIN | LV_STATE_CHECKED);
+
     ui_Image5 = lv_img_create(ui_SCRconfigdevice);
     lv_img_set_src(ui_Image5, &ui_img_settings_corner_png);
     lv_obj_set_width(ui_Image5, LV_SIZE_CONTENT);   /// 1
@@ -193,8 +219,8 @@ void ui_SCRconfigdevice_screen_init(void)
     lv_obj_remove_style_all(ui_Container14);
     lv_obj_set_width(ui_Container14, 336);
     lv_obj_set_height(ui_Container14, 51);
-    lv_obj_set_x(ui_Container14, -157);
-    lv_obj_set_y(ui_Container14, -68);
+    lv_obj_set_x(ui_Container14, 2);
+    lv_obj_set_y(ui_Container14, -53);
     lv_obj_set_align(ui_Container14, LV_ALIGN_BOTTOM_MID);
     lv_obj_set_flex_flow(ui_Container14, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(ui_Container14, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -247,8 +273,8 @@ void ui_SCRconfigdevice_screen_init(void)
     lv_obj_remove_style_all(ui_Container17);
     lv_obj_set_width(ui_Container17, 325);
     lv_obj_set_height(ui_Container17, 206);
-    lv_obj_set_x(ui_Container17, 80);
-    lv_obj_set_y(ui_Container17, 18);
+    lv_obj_set_x(ui_Container17, 56);
+    lv_obj_set_y(ui_Container17, 17);
     lv_obj_set_align(ui_Container17, LV_ALIGN_LEFT_MID);
     lv_obj_set_flex_flow(ui_Container17, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(ui_Container17, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
@@ -392,8 +418,8 @@ void ui_SCRconfigdevice_screen_init(void)
     lv_keyboard_set_mode(ui_Keyboard4, LV_KEYBOARD_MODE_NUMBER);
     lv_obj_set_width(ui_Keyboard4, 345);
     lv_obj_set_height(ui_Keyboard4, 270);
-    lv_obj_set_x(ui_Keyboard4, 216);
-    lv_obj_set_y(ui_Keyboard4, -19);
+    lv_obj_set_x(ui_Keyboard4, 198);
+    lv_obj_set_y(ui_Keyboard4, -49);
     lv_obj_set_align(ui_Keyboard4, LV_ALIGN_BOTTOM_MID);
     lv_obj_add_flag(ui_Keyboard4, LV_OBJ_FLAG_HIDDEN);     /// Flags
     lv_obj_set_style_radius(ui_Keyboard4, 20, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -484,6 +510,7 @@ void ui_SCRconfigdevice_screen_init(void)
                       "kghkkghfgfhfhfhfghfghfghghfghghfghfhfghgkjkjjjjjjjjjjjjjjjjjjjjjjjkjkjkjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj");
     lv_obj_set_style_text_font(ui_Label33, &ui_font_timesnewroman, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+    lv_obj_add_event_cb(ui_Panel37, ui_event_Panel37, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_Panel24, ui_event_Panel24, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_Panel28, ui_event_Panel28, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_Panel30, ui_event_Panel30, LV_EVENT_ALL, NULL);
@@ -501,6 +528,7 @@ void ui_SCRconfigdevice_screen_destroy(void)
 
     // NULL screen variables
     ui_SCRconfigdevice = NULL;
+    ui_Panel37 = NULL;
     ui_Image5 = NULL;
     ui_Panel24 = NULL;
     ui_Label24 = NULL;

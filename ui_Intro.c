@@ -255,8 +255,6 @@ void ui_Intro_screen_init(void)
     lv_obj_set_style_text_opa(ui_Keyboard2, 255, LV_PART_ITEMS | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_Keyboard2, &lv_font_montserrat_30, LV_PART_ITEMS | LV_STATE_DEFAULT);
 
-
-
     lv_obj_add_event_cb(ui_TextArea1, ui_event_TextArea1, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_Panel7, ui_event_Panel7, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_Keyboard2, ui_event_Keyboard2, LV_EVENT_ALL, NULL);

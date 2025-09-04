@@ -20,10 +20,9 @@ extern "C" {
 #define UI_COMP_DEVICEINFO1_MAC3 4
 #define UI_COMP_DEVICEINFO1_MAC4 5
 #define _UI_COMP_DEVICEINFO1_NUM 6
-lv_obj_t * ui_DeviceINFO1_create(lv_obj_t * comp_parent,const char* ID ,const char* LID ,const char* NOD ,const char* MAC ,const char* TIME );
+lv_obj_t * ui_DeviceINFO1_create(lv_obj_t * comp_parent);
 void ui_event_comp_DeviceINFO1_DeviceINFO1(lv_event_t * e);
-lv_obj_t * add_Notification(lv_obj_t * comp_parent,const char* massager);
-lv_obj_t * ui_Spinner_create(lv_obj_t * comp_parent);
+
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif

@@ -45,16 +45,15 @@ extern lv_obj_t * ui_TextArea7;
 extern lv_obj_t * ui_Image4;
 extern void ui_event_Keyboard1(lv_event_t * e);
 extern lv_obj_t * ui_Keyboard1;
-// extern void ui_event_Panel21(lv_event_t * e);
+extern void ui_event_Panel21(lv_event_t * e);
 extern lv_obj_t * ui_Panel21;
 extern lv_obj_t * ui_Panel22;
 extern lv_obj_t * ui_Label18;
-// extern void ui_event_Button7(lv_event_t * e);
+extern void ui_event_Button7(lv_event_t * e);
 extern lv_obj_t * ui_Button7;
 extern lv_obj_t * ui_Label23;
 extern lv_obj_t * ui_Panel23;
 extern lv_obj_t * ui_Label19;
-extern lv_obj_t * ui_spinner;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus

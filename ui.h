@@ -34,6 +34,8 @@ extern "C" {
 #include "ui_SCRGetLIC.h"
 #include "ui_SCRSetLIC.h"
 #include "ui_SCRconfigdevice.h"
+#include "ui_SCRSetting.h"
+#include "ui_SCRconfigdevice2.h"
 
 ///////////////////// VARIABLES ////////////////////
 
@@ -57,6 +59,7 @@ LV_IMG_DECLARE(ui_img_cloud_png);    // assets/cloud.png
 LV_IMG_DECLARE(ui_img_clock_png);    // assets/Clock.png
 LV_IMG_DECLARE(ui_img_save_png);    // assets/save.png
 LV_IMG_DECLARE(ui_img_icn_x_png);    // assets/icn_x.png
+LV_IMG_DECLARE(ui_img_1101766569);    // assets/right-arrow.png
 
 // FONTS
 LV_FONT_DECLARE(ui_font_Big);
@@ -68,7 +71,6 @@ LV_FONT_DECLARE(ui_font_timesnewroman);
 // UI INIT
 void ui_init(void);
 void ui_destroy(void);
-void ui_reset(void);
 
 #ifdef __cplusplus
 } /*extern "C"*/

@@ -81,6 +81,7 @@ void ui_event_Button2(lv_event_t * e)
         opaon_Animation(ui_Button2, 0);
         _ui_state_modify(ui_Buttontop2, LV_STATE_CHECKED, _UI_MODIFY_STATE_ADD);
         _ui_state_modify(ui_Labelbutton2, LV_STATE_CHECKED, _UI_MODIFY_STATE_ADD);
+        _ui_screen_change(&ui_SCRSetting, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_SCRSetting_screen_init);
     }
     if(event_code == LV_EVENT_RELEASED) {
         opaoff_Animation(ui_Button2, 0);
@@ -262,7 +263,7 @@ void ui_HOME_screen_init(void)
     lv_obj_set_x(ui_Labelbutton1, 0);
     lv_obj_set_y(ui_Labelbutton1, 120);
     lv_obj_set_align(ui_Labelbutton1, LV_ALIGN_TOP_MID);
-    lv_label_set_text(ui_Labelbutton1, "Get License");
+    lv_label_set_text(ui_Labelbutton1, "Get Licene");
     lv_obj_set_style_text_color(ui_Labelbutton1, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_Labelbutton1, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_Labelbutton1, &ui_font_Small, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -374,7 +375,7 @@ void ui_HOME_screen_init(void)
     lv_obj_set_x(ui_Labelbutton3, 0);
     lv_obj_set_y(ui_Labelbutton3, 120);
     lv_obj_set_align(ui_Labelbutton3, LV_ALIGN_TOP_MID);
-    lv_label_set_text(ui_Labelbutton3, "Set License");
+    lv_label_set_text(ui_Labelbutton3, "Set Licene");
     lv_obj_set_style_text_color(ui_Labelbutton3, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_Labelbutton3, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_Labelbutton3, &ui_font_Small, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -431,7 +432,7 @@ void ui_HOME_screen_init(void)
     lv_obj_set_y(ui_Labelbutton4, 120);
     lv_obj_set_align(ui_Labelbutton4, LV_ALIGN_TOP_MID);
     lv_label_set_long_mode(ui_Labelbutton4, LV_LABEL_LONG_SCROLL_CIRCULAR);
-    lv_label_set_text(ui_Labelbutton4, "Dowload License");
+    lv_label_set_text(ui_Labelbutton4, "Dowload Licene");
     lv_label_set_recolor(ui_Labelbutton4, "true");
     lv_obj_set_style_text_color(ui_Labelbutton4, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_Labelbutton4, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -544,7 +545,7 @@ void ui_HOME_screen_init(void)
     lv_obj_set_x(ui_Labelbutton6, 0);
     lv_obj_set_y(ui_Labelbutton6, 120);
     lv_obj_set_align(ui_Labelbutton6, LV_ALIGN_TOP_MID);
-    lv_label_set_text(ui_Labelbutton6, "List License");
+    lv_label_set_text(ui_Labelbutton6, "List Licene");
     lv_obj_set_style_text_color(ui_Labelbutton6, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_Labelbutton6, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_Labelbutton6, &ui_font_Small, LV_PART_MAIN | LV_STATE_DEFAULT);

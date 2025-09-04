@@ -48,10 +48,10 @@ extern lv_obj_t * ui_Label12;
 extern lv_obj_t * ui_Container12;
 extern lv_obj_t * ui_Label13;
 extern lv_obj_t * ui_Groupdevice;
-extern lv_obj_t * ui_DeviceINFO1;
+extern lv_obj_t * ui_Spinner1;
+extern lv_obj_t * ui_DeviceINFO2;
 extern void ui_event_Keyboard3(lv_event_t * e);
 extern lv_obj_t * ui_Keyboard3;
-extern lv_obj_t * ui_spinner1;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus

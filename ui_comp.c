@@ -6,7 +6,7 @@
 #include "ui.h"
 #include "ui_helpers.h"
 #include "ui_comp.h"
-#include "function.h"
+
 uint32_t LV_EVENT_GET_COMP_CHILD;
 
 typedef struct {
@@ -33,12 +33,5 @@ void get_component_child_event_cb(lv_event_t * e)
 void del_component_child_event_cb(lv_event_t * e)
 {
     lv_obj_t ** c = lv_event_get_user_data(e);
-    // lv_timer_del(timer);
     lv_mem_free(c);
-}
-void del_component_cb(lv_event_t * e)
-{
-    lv_obj_t ** var = lv_event_get_user_data(e);
-    lv_obj_del(*var);
-    (*var) = NULL;
 }

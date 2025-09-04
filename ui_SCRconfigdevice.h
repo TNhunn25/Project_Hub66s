@@ -14,6 +14,8 @@ extern "C" {
 extern void ui_SCRconfigdevice_screen_init(void);
 extern void ui_SCRconfigdevice_screen_destroy(void);
 extern lv_obj_t * ui_SCRconfigdevice;
+extern void ui_event_Panel37(lv_event_t * e);
+extern lv_obj_t * ui_Panel37;
 extern lv_obj_t * ui_Image5;
 extern void ui_event_Panel24(lv_event_t * e);
 extern lv_obj_t * ui_Panel24;

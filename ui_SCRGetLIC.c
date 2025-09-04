@@ -34,9 +34,9 @@ lv_obj_t * ui_Label12 = NULL;
 lv_obj_t * ui_Container12 = NULL;
 lv_obj_t * ui_Label13 = NULL;
 lv_obj_t * ui_Groupdevice = NULL;
-lv_obj_t * ui_DeviceINFO1 = NULL;
+lv_obj_t * ui_Spinner1 = NULL;
+lv_obj_t * ui_DeviceINFO2 = NULL;
 lv_obj_t * ui_Keyboard3 = NULL;
-lv_obj_t * ui_spinner1 = NULL;
 // event funtions
 void ui_event_Panel1(lv_event_t * e)
 {
@@ -135,7 +135,7 @@ void ui_SCRGetLIC_screen_init(void)
 {
     ui_SCRGetLIC = lv_obj_create(NULL);
     lv_obj_clear_flag(ui_SCRGetLIC, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    // lv_obj_add_event_cb(ui_SCRGetLIC, scr_unloaded_delete_cb, LV_EVENT_SCREEN_UNLOADED, &ui_SCRGetLIC);
+    lv_obj_add_event_cb(ui_SCRGetLIC, scr_unloaded_delete_cb, LV_EVENT_SCREEN_UNLOADED, &ui_SCRGetLIC);
     lv_obj_set_style_bg_color(ui_SCRGetLIC, lv_color_hex(0x0B0B0B), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui_SCRGetLIC, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_src(ui_SCRGetLIC, &ui_img_settings_bg_png, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -436,7 +436,7 @@ void ui_SCRGetLIC_screen_init(void)
     lv_obj_set_width(ui_Label12, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Label12, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_align(ui_Label12, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_Label12, "Next Page");
+    lv_label_set_text(ui_Label12, "New Scan");
 
     ui_Container12 = lv_obj_create(ui_SCRGetLIC);
     lv_obj_remove_style_all(ui_Container12);
@@ -478,9 +478,16 @@ void ui_SCRGetLIC_screen_init(void)
     lv_obj_set_style_pad_top(ui_Groupdevice, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(ui_Groupdevice, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    // ui_DeviceINFO1 = ui_DeviceINFO1_create(ui_Groupdevice);
-    // lv_obj_set_x(ui_DeviceINFO1, 0);
-    // lv_obj_set_y(ui_DeviceINFO1, 0);
+    ui_Spinner1 = lv_spinner_create(ui_Groupdevice, 1000, 90);
+    lv_obj_set_width(ui_Spinner1, 50);
+    lv_obj_set_height(ui_Spinner1, 50);
+    lv_obj_set_align(ui_Spinner1, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_Spinner1, LV_OBJ_FLAG_HIDDEN);     /// Flags
+    lv_obj_clear_flag(ui_Spinner1, LV_OBJ_FLAG_CLICKABLE);      /// Flags
+
+    ui_DeviceINFO2 = ui_DeviceINFO1_create(ui_Groupdevice);
+    lv_obj_set_x(ui_DeviceINFO2, 0);
+    lv_obj_set_y(ui_DeviceINFO2, 0);
 
     ui_Keyboard3 = lv_keyboard_create(ui_SCRGetLIC);
     lv_keyboard_set_mode(ui_Keyboard3, LV_KEYBOARD_MODE_NUMBER);
@@ -542,7 +549,8 @@ void ui_SCRGetLIC_screen_destroy(void)
     ui_Container12 = NULL;
     ui_Label13 = NULL;
     ui_Groupdevice = NULL;
-    ui_DeviceINFO1 = NULL;
+    ui_Spinner1 = NULL;
+    ui_DeviceINFO2 = NULL;
     ui_Keyboard3 = NULL;
 
 }
