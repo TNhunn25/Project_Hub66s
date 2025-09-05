@@ -37,11 +37,10 @@ extern uint32_t mac_nhan;
 
 // Khai báo các hàm
 void update_RTC(char* Hour, char* Minute, char* Second);
-void update_config(const char* localID, const char* deviceID, const char* nod);
+void update_config(char* localID, char* deviceID, char* nod);
 void get_lic_ui();
 void get_id_lid_ui();
 void Notification(char* messager);
 void timer_cb(lv_timer_t * timer);
-// void update_lic_info_ui();
 
 #endif // FUNCTION_H

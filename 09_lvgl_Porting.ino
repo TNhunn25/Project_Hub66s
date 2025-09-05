@@ -212,19 +212,7 @@ void handleScanResponse(uint32_t nodeId, int device_id, int local_id)
                 Device.DeviceID[i] = device_id;
                 Device.LocalID[i] = local_id;
                 Device.timeLIC[i] = (uint32_t)millis();
-                // saveDeviceList(Device);
-
-                // Đưa bản ghi cập nhật vào hàng đợi để ghi flash sau
-                LicenseRecord rec{};
-                rec.deviceID = device_id;
-                rec.localID = local_id;
-                rec.numberDevice = Device.deviceCount;
-                rec.mac = nodeId;
-                rec.time = Device.timeLIC[i];
-                packetPersistQueue.push_back(rec);
-
-                deviceListDirty = true; // đánh dấu cần lưu danh sách mới
-
+                saveDeviceList(Device);
                 break;
             }
         }
@@ -383,39 +371,24 @@ void loop()
             config_device(MASTER_ID, Device_ID, datalic.lid, 0, millis());
             break;
         case 4:
-            // // gửi Broadcast cho toàn bộ hệ thống
-            // Serial.println("Gửi lệnh LIC_GET_LICENSE");
-            // // Không xóa danh sách thiết bị khi rescan,
-            // // chỉ phát yêu cầu để cập nhật thông tin mới
-            // // getlicense(Device_ID, datalic.lid, mac_nhan, millis());
-            // getlicense(Device_ID, datalic.lid, 0, millis());
-            // // enable_print_ui=true;
-            // // timer_out=millis();
-            // break;
-
-            // Nhấn "rescan": hiển thị danh sách đã lưu và quét thêm thiết bị mới
+            // gửi Broadcast cho toàn bộ hệ thống
             Serial.println("Gửi lệnh LIC_GET_LICENSE");
-            // Tải danh sách đã lưu từ flash để đảm bảo dữ liệu hiện tại
-            loadDeviceList(Device);
-            // Cập nhật giao diện hiển thị các thiết bị đã có
-            enable_print_ui = true; 
-            // Phát yêu cầu lấy license để phát hiện thiết bị mới nếu có
-            getlicense(Device_ID, datalic.lid, 0, millis());
-            break;
-        case 5:
-            memset(&Device, 0, sizeof(Device));
-            deviceListDirty = true; // xóa danh sách cũ trong flash
-
+            // Không xóa danh sách thiết bị khi rescan,
+            // chỉ phát yêu cầu để cập nhật thông tin mới
             // getlicense(Device_ID, datalic.lid, mac_nhan, millis());
             getlicense(Device_ID, datalic.lid, 0, millis());
             // enable_print_ui=true;
             // timer_out=millis();
             break;
-        case 6:
-            Serial.println("Gửi lệnh LIC_INFO");
-            lic_info(MASTER_ID, Device_ID, datalic.lid, 0, millis());
+        case 5:
+            memset(&Device, 0, sizeof(Device));
+            // getlicense(Device_ID, datalic.lid, mac_nhan, millis());
+            getlicense(Device_ID, datalic.lid, 0, millis());
+            // enable_print_ui=true;
+            // timer_out=millis();
             break;
         default:
+
             break;
         }
         button = 0;

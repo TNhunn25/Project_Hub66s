@@ -7,6 +7,7 @@
 #include "protocol_handler.h" // cho createMessage()
 #include "mesh_handler.h"     // cho meshBroadcastJson()
 
+
 // xử lý các lệnh nhập tay từ Serial
 static void handleSerialCommand(const String &cmd)
 {
@@ -41,26 +42,12 @@ static void handleSerialCommand(const String &cmd)
       Serial.println("Sai định dạng. set <device_id> <local_id> <hour> <minute>");
     }
   }
-  else if (cmd.startsWith("info"))
-  {
-    int did, lid;
-    if (sscanf(cmd.c_str(), "info %d %d", &did, &lid) == 2)
-    {
-      Device_ID = did;
-      datalic.lid = lid;
-      button = 6;
-      Serial.println("Yêu cầu gửi LIC_INFO");
-    }
-    else
-    {
-      Serial.println("Sai định dạng. info <device_id> <local_id>");
-    }
-  }
   else
   {
     Serial.println("Lệnh không hợp lệ");
   }
 }
+
 
 // ==== Nhận cấu hình id và lid từ Serial Monitor ====
 // inline void rec_PC()
@@ -197,9 +184,6 @@ void serial_pc()
             case 6: // LIC_INFO
               Serial.println("LIC_INFO (Cập nhật thông tin LIC66S)");
               break;
-            case 7: // LIC_CONFIG_DEVICE
-              Serial.println("LIC_CONFIG_DEVICE (Cấu hình thiết bị với license)");
-              break;
             default:
               Serial.println("Không xác định opcode!");
               break;
@@ -217,5 +201,6 @@ void serial_pc()
     }
   }
 }
+
 
 #endif // SERIAL_H
